@@ -97,13 +97,21 @@ docker compose up -d
 
 ### Load data into PostgreSQL
 
-Install dependencies:
+Install uv
 
 ```bash
-pip install pandas pyarrow sqlalchemy psycopg2-binary
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Create `load_data.py`:
+Create virtual environment and install dependencies
+
+```bash
+uv venv
+source .venv/bin/activate
+uv pip install pandas pyarrow sqlalchemy psycopg2-binary
+```
+
+Create `load_data.py`
 
 ```python
 import pandas as pd
@@ -120,10 +128,10 @@ pd.read_csv("taxi_zone_lookup.csv") \
   .to_sql("taxi_zone_lookup", engine, if_exists="replace", index=False)
 ```
 
-Run:
+Run `load_data.py`
 
 ```bash
-python load_data.py
+uv run load_data.py
 ```
 
 ---
