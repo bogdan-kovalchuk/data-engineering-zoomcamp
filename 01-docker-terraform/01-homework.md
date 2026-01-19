@@ -25,6 +25,11 @@ What's the version of `pip` in the image?
 - 24.2.1
 - 23.3.1
 
+To check the `pip` version inside the `python:3.13` Docker image, run:
+```bash
+docker run python:3.13 sh -c "pip --version"
+```
+
 
 ## Question 2. Understanding Docker networking and docker-compose
 
@@ -73,17 +78,67 @@ If multiple answers are correct, select any
 
 ## Prepare the Data
 
-Download the green taxi trips data for November 2025:
+### Download the green taxi trips data for November 2025:
 
 ```bash
 wget https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_2025-11.parquet
-```
-
-You will also need the dataset with zones:
-
-```bash
 wget https://github.com/DataTalksClub/nyc-tlc-data/releases/download/misc/taxi_zone_lookup.csv
 ```
+
+---
+
+### Start services
+
+```bash
+docker compose up -d
+```
+
+---
+
+### Load data into PostgreSQL
+
+Install dependencies:
+
+```bash
+pip install pandas pyarrow sqlalchemy psycopg2-binary
+```
+
+Create `load_data.py`:
+
+```python
+import pandas as pd
+from sqlalchemy import create_engine
+
+engine = create_engine(
+    "postgresql+psycopg2://postgres:postgres@localhost:5433/ny_taxi"
+)
+
+pd.read_parquet("green_tripdata_2025-11.parquet") \
+  .to_sql("green_tripdata_2025_11", engine, if_exists="replace", index=False)
+
+pd.read_csv("taxi_zone_lookup.csv") \
+  .to_sql("taxi_zone_lookup", engine, if_exists="replace", index=False)
+```
+
+Run:
+
+```bash
+python load_data.py
+```
+
+---
+
+## Run SQL
+
+**pgAdmin**
+- URL: `http://localhost:8080`
+- Host: `db`
+- Port: `5432`
+- Database: `ny_taxi`
+- User: `postgres`
+- Password: `postgres`
+
+---
 
 ## Question 3. Counting short trips
 
