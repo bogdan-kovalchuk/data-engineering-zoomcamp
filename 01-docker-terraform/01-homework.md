@@ -20,7 +20,7 @@ Run docker with the `python:3.13` image. Use an entrypoint `bash` to interact wi
 
 What's the version of `pip` in the image?
 
-- <font color='green'>25.3</font> ✅
+- 25.3 ✅
 - 24.3.1
 - 24.2.1
 - 23.3.1
@@ -66,7 +66,7 @@ volumes:
 - localhost:5432
 - db:5433
 - postgres:5432
-- db:5432
+- db:5432 ✅
 
 If multiple answers are correct, select any 
 
