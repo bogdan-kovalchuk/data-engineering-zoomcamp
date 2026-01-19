@@ -20,7 +20,7 @@ Run docker with the `python:3.13` image. Use an entrypoint `bash` to interact wi
 
 What's the version of `pip` in the image?
 
-- 25.3
+- <font color='green'>25.3</font> ✅
 - 24.3.1
 - 24.2.1
 - 23.3.1
