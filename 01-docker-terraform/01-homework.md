@@ -172,10 +172,28 @@ Which was the pick up day with the longest trip distance? Only consider trips wi
 
 Use the pick up time for your calculations.
 
-- 2025-11-14
+- 2025-11-14 ✅
 - 2025-11-20
 - 2025-11-23
 - 2025-11-25
+
+```sql
+SELECT
+    DATE(lpep_pickup_datetime) AS pickup_date,
+    MAX(trip_distance) AS max_trip_distance
+FROM green_tripdata_2025_11
+WHERE
+    trip_distance < 100
+    AND DATE(lpep_pickup_datetime) IN (
+        DATE '2025-11-14',
+        DATE '2025-11-20',
+        DATE '2025-11-23',
+        DATE '2025-11-25'
+    )
+GROUP BY pickup_date
+ORDER BY max_trip_distance DESC
+LIMIT 1;
+```
 
 
 ## Question 5. Biggest pickup zone
