@@ -1,10 +1,32 @@
 # Module 2 Homework
 
 1) Within the execution for `Yellow` Taxi data for the year `2020` and month `12`: what is the uncompressed file size (i.e. the output file `yellow_tripdata_2020-12.csv` of the `extract` task)?
-- 128.3 MiB
+- 128.3 MiB ✅
 - 134.5 MiB
 - 364.7 MiB
 - 692.6 MiB
+
+In order to find uncompressed file size, in the flow definition  [02_postgres_taxi_scheduled.yaml](flows/02_postgres_taxi_scheduled.yaml) the task responsible for deleting execution files was disabled to allow inspection of the extracted CSV file.
+
+```yaml
+- id: purge_files
+  type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
+  description: To avoid cluttering your storage, we will remove the downloaded files
+  desabled: true
+```
+
+To see the uncompressed file size in **Kestra UI**:
+
+1. Run the flow.
+2. Open the completed execution.
+3. Navigate through:
+   ```
+   Outputs → extracts → outputFiles → yellow_tripdata_2020-12.csv
+   ```
+4. The file size is displayed in the UI, as shown below.
+
+![Yellow Taxi December 2020 CSV file size](images/file_size_yellow_tripdata_2020-12_csv.png)
+
 
 2) What is the rendered value of the variable `file` when the inputs `taxi` is set to `green`, `year` is set to `2020`, and `month` is set to `04` during execution?
 - `{{inputs.taxi}}_tripdata_{{inputs.year}}-{{inputs.month}}.csv` 
