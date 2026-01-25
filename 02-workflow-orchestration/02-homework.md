@@ -15,7 +15,7 @@ In order to find uncompressed file size, in the flow definition  [02_postgres_ta
   desabled: true
 ```
 
-To see the uncompressed file size in **Kestra UI**:
+To see the uncompressed file size in **Kestra UI**, the following steps should be performed:
 
 1. Run the flow.
 2. Open the completed execution.
