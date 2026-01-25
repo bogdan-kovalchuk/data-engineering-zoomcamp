@@ -21,7 +21,7 @@ To see the uncompressed file size in **Kestra UI**:
 2. Open the completed execution.
 3. Navigate through:
    ```
-   Outputs → extracts → outputFiles → yellow_tripdata_2020-12.csv
+   Outputs → extract → outputFiles → yellow_tripdata_2020-12.csv
    ```
 4. The file size is displayed in the UI, as shown below.
 
