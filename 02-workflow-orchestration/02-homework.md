@@ -6,7 +6,7 @@
 - 364.7 MiB
 - 692.6 MiB
 
-In order to find uncompressed file size, in the flow definition  [02_postgres_taxi_scheduled.yaml](flows/02_postgres_taxi_scheduled.yaml) the task responsible for deleting execution files was disabled to allow inspection of the extracted CSV file.
+In order to find uncompressed file size, in the flow definition [01_postgres_taxi.yaml](flows/01_postgres_taxi.yaml) task responsible for deleting execution files was disabled to allow inspection of the extracted CSV file.
 
 ```yaml
 - id: purge_files
