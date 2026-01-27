@@ -32,20 +32,34 @@ tasks:
         type: io.kestra.plugin.scripts.shell.Commands
         outputFiles:
           - "*.csv"
+          - "download.ok"
         taskRunner:
           type: io.kestra.plugin.core.runner.Process
         commands:
           - |
             url="https://github.com/DataTalksClub/nyc-tlc-data/releases/download/{{inputs.taxi}}/{{inputs.taxi}}_tripdata_{{inputs.year}}-{{taskrun.value}}.csv.gz"
-            if wget -q --spider "$url"; then
-              wget -qO- "$url" | gunzip > {{inputs.taxi}}_tripdata_{{inputs.year}}-{{taskrun.value}}.csv
+            out="{{inputs.taxi}}_tripdata_{{inputs.year}}-{{taskrun.value}}.csv"
+            tmp="/tmp/{{inputs.taxi}}_tripdata_{{inputs.year}}-{{taskrun.value}}.csv.gz"
+            if wget -q -O "$tmp" -L "$url"; then
+              gunzip -c "$tmp" > "$out"
+              printf "" > download.ok
             else
               echo "Missing file: $url"
             fi
 
+      - id: debug_output_files
+        type: io.kestra.plugin.core.log.Log
+        message: "month={{ taskrun.value }}, extract_defined={{ outputs.extract[taskrun.value] is defined }}, outputFiles_keys={{ outputs.extract[taskrun.value] is defined and outputs.extract[taskrun.value].outputFiles is defined ? (outputs.extract[taskrun.value].outputFiles | keys) : [] }}, has_csv={{ outputs.extract[taskrun.value] is defined and outputs.extract[taskrun.value].outputFiles is defined and outputs.extract[taskrun.value].outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ taskrun.value ~ '.csv'] is defined }}"
+
+      - id: file_ref
+        type: io.kestra.plugin.core.output.OutputValues
+        values:
+          csv: "{{ outputs.extract[taskrun.value].outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ taskrun.value ~ '.csv'] }}"
+          file: "{{ inputs.taxi }}_tripdata_{{ inputs.year }}-{{ taskrun.value }}.csv"
+
       - id: if_file_downloaded
         type: io.kestra.plugin.core.flow.If
-        condition: "{{outputs.extract.outputFiles is not null and outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ taskrun.value ~ '.csv'] is not null}}"
+        condition: "{{ outputs.file_ref[taskrun.value].values.csv is defined }}"
         then:
           - id: if_yellow_taxi
             type: io.kestra.plugin.core.flow.If
@@ -111,7 +125,7 @@ tasks:
               - id: yellow_copy_in_to_staging_table
                 type: io.kestra.plugin.jdbc.postgresql.CopyIn
                 format: CSV
-                from: "{{outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ taskrun.value ~ '.csv']}}"
+                from: "{{ outputs.file_ref[parents[1].taskrun.value].values.csv }}"
                 table: "public.{{inputs.taxi}}_tripdata_staging"
                 header: true
                 columns: [VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,RatecodeID,store_and_fwd_flag,PULocationID,DOLocationID,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount,congestion_surcharge]
@@ -129,8 +143,8 @@ tasks:
                       COALESCE(DOLocationID, '') || 
                       COALESCE(CAST(fare_amount AS text), '') || 
                       COALESCE(CAST(trip_distance AS text), '')      
-                    ),
-                    filename = '{{inputs.taxi}}_tripdata_{{inputs.year}}-{{taskrun.value}}.csv';
+                  ),
+                    filename = '{{ outputs.file_ref[parents[1].taskrun.value].values.file }}';
 
               - id: yellow_merge_data
                 type: io.kestra.plugin.jdbc.postgresql.Queries
@@ -220,7 +234,7 @@ tasks:
               - id: green_copy_in_to_staging_table
                 type: io.kestra.plugin.jdbc.postgresql.CopyIn
                 format: CSV
-                from: "{{outputs.extract.outputFiles[inputs.taxi ~ '_tripdata_' ~ inputs.year ~ '-' ~ taskrun.value ~ '.csv']}}"
+                from: "{{ outputs.file_ref[parents[1].taskrun.value].values.csv }}"
                 table: "public.{{inputs.taxi}}_tripdata_staging"
                 header: true
                 columns: [VendorID,lpep_pickup_datetime,lpep_dropoff_datetime,store_and_fwd_flag,RatecodeID,PULocationID,DOLocationID,passenger_count,trip_distance,fare_amount,extra,mta_tax,tip_amount,tolls_amount,ehail_fee,improvement_surcharge,total_amount,payment_type,trip_type,congestion_surcharge]
@@ -238,8 +252,8 @@ tasks:
                       COALESCE(DOLocationID, '') || 
                       COALESCE(CAST(fare_amount AS text), '') || 
                       COALESCE(CAST(trip_distance AS text), '')      
-                    ),
-                    filename = '{{inputs.taxi}}_tripdata_{{inputs.year}}-{{taskrun.value}}.csv';
+                  ),
+                    filename = '{{ outputs.file_ref[parents[1].taskrun.value].values.file }}';
 
               - id: green_merge_data
                 type: io.kestra.plugin.jdbc.postgresql.Queries
