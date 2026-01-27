@@ -43,9 +43,17 @@ variables:
 
 3) How many rows are there for the `Yellow` Taxi data for all CSV files in the year 2020?
 - 13,537.299
-- 24,648,499
+- 24,648,499 ✅
 - 18,324,219
 - 29,430,127
+
+A new flow file [02_postgres_taxi_all_months.yaml](flows/02_postgres_taxi_all_months.yaml) was added to load all Taxi CSV files for the selected year into the database. After loading the data, the following SQL query was executed to calculate the total number of rows for the year 2020:
+
+```sql
+SELECT COUNT(*)
+FROM yellow_tripdata
+WHERE EXTRACT(YEAR FROM tpep_pickup_datetime) = 2020;
+```
 
 4) How many rows are there for the `Green` Taxi data for all CSV files in the year 2020?
 - 5,327,301
