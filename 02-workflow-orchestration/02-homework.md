@@ -58,8 +58,17 @@ WHERE EXTRACT(YEAR FROM tpep_pickup_datetime) = 2020;
 4) How many rows are there for the `Green` Taxi data for all CSV files in the year 2020?
 - 5,327,301
 - 936,199
-- 1,734,051
+- 1,734,051 ✅
 - 1,342,034
+
+The same flow from the previous task was used to load all Green Taxi CSV files for the selected year into the database.  
+After the data was loaded, the following SQL query was executed to calculate the total number of rows for the year 2020:
+
+```sql
+SELECT COUNT(*)
+FROM green_tripdata
+WHERE EXTRACT(YEAR FROM lpep_pickup_datetime) = 2020;
+```
 
 5) How many rows are there for the `Yellow` Taxi data for the March 2021 CSV file?
 - 1,428,092
