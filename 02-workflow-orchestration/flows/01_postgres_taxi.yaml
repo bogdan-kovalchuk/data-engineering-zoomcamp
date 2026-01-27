@@ -1,4 +1,4 @@
-id: 04_postgres_taxi
+id: 01_postgres_taxi
 namespace: zoomcamp
 description: |
   The CSV Data used in the course: https://github.com/DataTalksClub/nyc-tlc-data/releases
@@ -261,7 +261,6 @@ tasks:
   - id: purge_files
     type: io.kestra.plugin.core.storage.PurgeCurrentExecutionFiles
     description: This will remove output files. If you'd like to explore Kestra outputs, disable it.
-    disabled: true
 
 pluginDefaults:
   - type: io.kestra.plugin.jdbc.postgresql
