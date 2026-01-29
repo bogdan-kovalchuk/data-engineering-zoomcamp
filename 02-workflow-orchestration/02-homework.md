@@ -85,6 +85,14 @@ WHERE EXTRACT(YEAR FROM tpep_pickup_datetime) = 2021
 
 6) How would you configure the timezone to New York in a Schedule trigger?
 - Add a `timezone` property set to `EST` in the `Schedule` trigger configuration  
-- Add a `timezone` property set to `America/New_York` in the `Schedule` trigger configuration
+- Add a `timezone` property set to `America/New_York` in the `Schedule` trigger configuration ✅
 - Add a `timezone` property set to `UTC-5` in the `Schedule` trigger configuration
-- Add a `location` property set to `New_York` in the `Schedule` trigger configuration  
+- Add a `location` property set to `New_York` in the `Schedule` trigger configuration
+
+```yaml
+triggers:
+  - id: schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "@daily"
+    timezone: America/New_York
+```
