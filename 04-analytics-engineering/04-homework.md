@@ -6,7 +6,7 @@ This homework uses the dbt project in `04-analytics-engineering/taxi_rides_ny/` 
 
 The following local setup was completed:
 
-1. The dbt project was configured using the [setup guide](../../../04-analytics-engineering/setup/)
+1. The dbt project was configured
 2. Green and Yellow taxi data for 2019-2020 was loaded into the warehouse
 3. `dbt build --target prod` was executed to build all models and run tests
 
