@@ -33,8 +33,12 @@ If you run `dbt run --select int_trips_unioned`, what models will be built?
 
 - `stg_green_tripdata`, `stg_yellow_tripdata`, and `int_trips_unioned` (upstream dependencies)
 - Any model with upstream and downstream dependencies to `int_trips_unioned`
-- `int_trips_unioned` only
+- `int_trips_unioned` only ✅
 - `int_trips_unioned`, `int_trips`, and `fct_trips` (downstream dependencies)
+
+```bash
+dbt run --select int_trips_unioned
+```
 
 ---
 
@@ -57,9 +61,13 @@ Your model `fct_trips` has been running successfully for months. A new value `6`
 What happens when you run `dbt test --select fct_trips`?
 
 - dbt will skip the test because the model didn't change
-- dbt will fail the test, returning a non-zero exit code
+- dbt will fail the test, returning a non-zero exit code ✅
 - dbt will pass the test with a warning about the new value
 - dbt will update the configuration to include the new value
+
+```bash
+dbt test --select fct_trips
+```
 
 ---
 
@@ -69,10 +77,15 @@ After running your dbt project, query the `fct_monthly_zone_revenue` model.
 
 What is the count of records in the `fct_monthly_zone_revenue` model?
 
-- 12,998
+- 12,998 ✅
 - 14,120
 - 12,184
 - 15,421
+
+```sql
+SELECT COUNT(*) AS total_records
+FROM `your_project.your_dataset.fct_monthly_zone_revenue`;
+```
 
 ---
 
@@ -82,10 +95,23 @@ Using the `fct_monthly_zone_revenue` table, find the pickup zone with the **high
 
 Which zone had the highest revenue?
 
-- East Harlem North
+- East Harlem North ✅
 - Morningside Heights
 - East Harlem South
 - Washington Heights South
+
+```sql
+SELECT
+  pickup_zone,
+  SUM(revenue_monthly_total_amount) AS total_revenue
+FROM `your_project.your_dataset.fct_monthly_zone_revenue`
+WHERE service_type = 'Green'
+  AND revenue_month >= '2020-01-01'
+  AND revenue_month < '2021-01-01'
+GROUP BY pickup_zone
+ORDER BY total_revenue DESC
+LIMIT 1;
+```
 
 ---
 
@@ -94,9 +120,16 @@ Which zone had the highest revenue?
 Using the `fct_monthly_zone_revenue` table, what is the **total number of trips** (`total_monthly_trips`) for Green taxis in October 2019?
 
 - 500,234
-- 350,891
+- 350,891 ✅
 - 384,624
 - 421,509
+
+```sql
+SELECT SUM(total_monthly_trips) AS total_trips
+FROM `your_project.your_dataset.fct_monthly_zone_revenue`
+WHERE service_type = 'Green'
+  AND revenue_month = '2019-10-01';
+```
 
 ---
 
@@ -112,9 +145,27 @@ Create a staging model for the **For-Hire Vehicle (FHV)** trip data for 2019.
 What is the count of records in `stg_fhv_tripdata`?
 
 - 42,084,899
-- 43,244,693
+- 43,244,693 ✅
 - 22,998,722
 - 44,112,187
+
+```sql
+SELECT COUNT(*) AS total_records
+FROM `your_project.your_dataset.stg_fhv_tripdata`;
+```
+
+```sql
+SELECT
+  dispatching_base_num,
+  pickup_datetime,
+  dropoff_datetime,
+  PUlocationID AS pickup_location_id,
+  DOlocationID AS dropoff_location_id,
+  SR_Flag AS sr_flag,
+  Affiliated_base_number AS affiliated_base_number
+FROM `your_project.nytaxi.fhv_tripdata`
+WHERE dispatching_base_num IS NOT NULL;
+```
 
 ---
 
