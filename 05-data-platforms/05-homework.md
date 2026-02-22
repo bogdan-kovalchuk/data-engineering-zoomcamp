@@ -30,7 +30,7 @@ You're building a pipeline that processes NYC taxi data organized by month based
 
 - `append` - always add new rows
 - `replace` - truncate and rebuild entirely
-- `time_interval` - incremental based on a time column
+- `time_interval` - incremental based on a time column ✅
 - `view` - create a virtual table only
 
 ---
@@ -52,7 +52,7 @@ How do you override this when running the pipeline to only process yellow taxis?
 
 - `bruin run --taxi-types yellow`
 - `bruin run --var taxi_types=yellow`
-- `bruin run --var 'taxi_types=["yellow"]'`
+- `bruin run --var 'taxi_types=["yellow"]'` ✅
 - `bruin run --set taxi_types=["yellow"]`
 
 ---
