@@ -100,8 +100,15 @@ Spark's User Interface which shows the application's dashboard runs on which loc
 
 - 80
 - 443
-- 4040
+- 4040 ✅
 - 8080
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.master("local[*]").appName("hw6-q5").getOrCreate()
+print(spark.sparkContext.uiWebUrl)  # http://localhost:4040
+```
 
 
 
