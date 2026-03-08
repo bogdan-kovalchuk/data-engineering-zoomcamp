@@ -122,12 +122,24 @@ wget https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv
 
 Using the zone lookup data and the Yellow November 2025 data, what is the name of the LEAST frequent pickup location Zone?
 
-- Governor's Island/Ellis Island/Liberty Island
+- Governor's Island/Ellis Island/Liberty Island ✅
 - Arden Heights
 - Rikers Island
 - Jamaica Bay
 
 If multiple answers are correct, select any
+
+```sql
+SELECT
+  z.Zone,
+  COUNT(*) AS trips
+FROM yellow_2025_11 y
+LEFT JOIN taxi_zone_lookup z
+  ON y.PULocationID = z.LocationID
+GROUP BY z.Zone
+ORDER BY trips ASC, z.Zone ASC
+LIMIT 1;
+```
 
 ## Submitting the solutions
 
