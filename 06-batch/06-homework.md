@@ -21,6 +21,15 @@ What's the output?
 > [!NOTE]
 > To install PySpark follow this [guide](https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/setup/)
 
+- `3.5.5` ✅
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.master("local[*]").appName("hw6").getOrCreate()
+print(spark.version)  # 3.5.5
+```
+
 
 ## Question 2: Yellow November 2025
 
