@@ -40,9 +40,24 @@ Repartition the Dataframe to 4 partitions and save it to parquet.
 What is the average size of the Parquet (ending with .parquet extension) Files that were created (in MB)? Select the answer which most closely matches.
 
 - 6MB
-- 25MB
+- 25MB ✅
 - 75MB
 - 100MB
+
+```python
+from pathlib import Path
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.master("local[*]").appName("hw6-q2").getOrCreate()
+df = spark.read.parquet("data/raw/yellow_tripdata_2025-11.parquet")
+
+output = "output/yellow_2025_11_repartitioned"
+df.repartition(4).write.mode("overwrite").parquet(output)
+
+files = list(Path(output).glob("*.parquet"))
+avg_mb = sum(f.stat().st_size for f in files) / len(files) / (1024 * 1024)
+print(round(avg_mb, 2))  # ~25 MB
+```
 
 
 ## Question 3: Count records
