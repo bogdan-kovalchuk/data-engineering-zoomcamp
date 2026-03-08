@@ -66,10 +66,16 @@ How many taxi trips were there on the 15th of November?
 
 Consider only trips that started on the 15th of November.
 
-- 62,610
+- 62,610 ✅
 - 102,340
 - 162,604
 - 225,768
+
+```sql
+SELECT COUNT(*) AS trips_on_2025_11_15
+FROM yellow_2025_11
+WHERE DATE(tpep_pickup_datetime) = '2025-11-15';
+```
 
 
 ## Question 4: Longest trip
