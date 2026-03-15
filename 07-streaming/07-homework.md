@@ -240,9 +240,30 @@ LIMIT 3;
 Which `PULocationID` had the most trips in a single 5-minute window?
 
 - 42
-- 74
+- 74 ✅
 - 75
 - 166
+
+```python
+import pandas as pd
+
+df = pd.read_parquet(
+    "data/raw/green_tripdata_2025-10.parquet",
+    columns=["lpep_pickup_datetime", "PULocationID"],
+)
+df["lpep_pickup_datetime"] = pd.to_datetime(df["lpep_pickup_datetime"])
+df["window_start"] = df["lpep_pickup_datetime"].dt.floor("5min")
+
+result = (
+    df.groupby(["window_start", "PULocationID"])
+    .size()
+    .reset_index(name="num_trips")
+    .sort_values(["num_trips", "PULocationID"], ascending=[False, True])
+    .head(1)
+)
+
+print(result)
+```
 
 
 ## Question 5. Session window - longest streak
@@ -262,7 +283,64 @@ How many trips were in the longest session?
 - 12
 - 31
 - 51
-- 81
+- 81 ✅
+
+```python
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)  # topic has 1 partition
+settings = EnvironmentSettings.new_instance().in_streaming_mode().build()
+t_env = StreamTableEnvironment.create(env, environment_settings=settings)
+
+t_env.execute_sql("""
+CREATE TABLE green_trips (
+    lpep_pickup_datetime VARCHAR,
+    PULocationID INT,
+    event_timestamp AS TO_TIMESTAMP(lpep_pickup_datetime, 'yyyy-MM-dd HH:mm:ss'),
+    WATERMARK FOR event_timestamp AS event_timestamp - INTERVAL '5' SECOND
+) WITH (
+    'connector' = 'kafka',
+    'topic' = 'green-trips',
+    'properties.bootstrap.servers' = 'redpanda:9092',
+    'properties.group.id' = 'flink-q5',
+    'scan.startup.mode' = 'earliest-offset',
+    'format' = 'json'
+)
+""")
+
+t_env.execute_sql("""
+CREATE TABLE q5_session_pu (
+    window_start TIMESTAMP(3),
+    window_end TIMESTAMP(3),
+    pu_location_id INT,
+    num_trips BIGINT
+) WITH (
+    'connector' = 'jdbc',
+    'url' = 'jdbc:postgresql://postgres:5432/postgres',
+    'table-name' = 'q5_session_pu',
+    'driver' = 'org.postgresql.Driver',
+    'username' = 'postgres',
+    'password' = 'postgres'
+)
+""")
+
+t_env.execute_sql("""
+INSERT INTO q5_session_pu
+SELECT window_start, window_end, PULocationID, COUNT(*) AS num_trips
+FROM TABLE(
+    SESSION(TABLE green_trips, DESCRIPTOR(event_timestamp), INTERVAL '5' MINUTES)
+)
+GROUP BY window_start, window_end, PULocationID
+""")
+
+# Validation query in PostgreSQL:
+# SELECT pu_location_id, num_trips
+# FROM q5_session_pu
+# ORDER BY num_trips DESC
+# LIMIT 1;
+```
 
 
 ## Question 6. Tumbling window - largest tip
