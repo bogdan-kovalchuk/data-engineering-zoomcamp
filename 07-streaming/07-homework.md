@@ -52,6 +52,8 @@ docker exec -it workshop-redpanda-1 rpk version
 
 What version of Redpanda are you running?
 
+- `v24.2.18` ✅
+
 
 ## Question 2. Sending data to Redpanda
 
