@@ -351,9 +351,65 @@ total `tip_amount` per hour (across all locations).
 Which hour had the highest total tip amount?
 
 - 2025-10-01 18:00:00
-- 2025-10-16 18:00:00
+- 2025-10-16 18:00:00 ✅
 - 2025-10-22 08:00:00
 - 2025-10-30 16:00:00
+
+```python
+from pyflink.datastream import StreamExecutionEnvironment
+from pyflink.table import EnvironmentSettings, StreamTableEnvironment
+
+env = StreamExecutionEnvironment.get_execution_environment()
+env.set_parallelism(1)  # topic has 1 partition
+settings = EnvironmentSettings.new_instance().in_streaming_mode().build()
+t_env = StreamTableEnvironment.create(env, environment_settings=settings)
+
+t_env.execute_sql("""
+CREATE TABLE green_trips (
+    lpep_pickup_datetime VARCHAR,
+    tip_amount DOUBLE,
+    event_timestamp AS TO_TIMESTAMP(lpep_pickup_datetime, 'yyyy-MM-dd HH:mm:ss'),
+    WATERMARK FOR event_timestamp AS event_timestamp - INTERVAL '5' SECOND
+) WITH (
+    'connector' = 'kafka',
+    'topic' = 'green-trips',
+    'properties.bootstrap.servers' = 'redpanda:9092',
+    'properties.group.id' = 'flink-q6',
+    'scan.startup.mode' = 'earliest-offset',
+    'format' = 'json'
+)
+""")
+
+t_env.execute_sql("""
+CREATE TABLE q6_tumbling_tip (
+    window_start TIMESTAMP(3),
+    window_end TIMESTAMP(3),
+    total_tip_amount DOUBLE
+) WITH (
+    'connector' = 'jdbc',
+    'url' = 'jdbc:postgresql://postgres:5432/postgres',
+    'table-name' = 'q6_tumbling_tip',
+    'driver' = 'org.postgresql.Driver',
+    'username' = 'postgres',
+    'password' = 'postgres'
+)
+""")
+
+t_env.execute_sql("""
+INSERT INTO q6_tumbling_tip
+SELECT window_start, window_end, SUM(tip_amount) AS total_tip_amount
+FROM TABLE(
+    TUMBLE(TABLE green_trips, DESCRIPTOR(event_timestamp), INTERVAL '1' HOUR)
+)
+GROUP BY window_start, window_end
+""")
+
+# Validation query in PostgreSQL:
+# SELECT window_start, total_tip_amount
+# FROM q6_tumbling_tip
+# ORDER BY total_tip_amount DESC
+# LIMIT 1;
+```
 
 
 ## Submitting the solutions
