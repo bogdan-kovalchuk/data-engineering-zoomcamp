@@ -60,7 +60,7 @@ Planned analytical questions include:
 - **Cloud**: GCP
 - **Data lake**: Google Cloud Storage
 - **Data warehouse**: BigQuery
-- **Workflow orchestration**: To be finalized
+- **Workflow orchestration**: Kestra
 - **Transformations**: To be finalized
 - **Dashboard**: Looker Studio
 - **IaC**: Terraform
@@ -82,8 +82,7 @@ This section will be updated as the project evolves. A tentative structure is sh
 london-transport-analytics/
 |-- README.md
 |-- Terraform/
-|-- orchestration/
-|-- ingestion/
+|-- Kestra/
 |-- transformations/
 |-- warehouse/
 |-- dashboard/
@@ -101,12 +100,16 @@ This section will describe:
 
 ## Data Ingestion
 
-This section will describe:
+The first implemented stage of the project uses **Kestra** to automate raw data ingestion.
 
-- source dataset access
-- ingestion workflow
-- raw file naming convention
-- upload to the data lake
+The ingestion flow will:
+
+- download the official TfL CSV dataset
+- validate and store the file as a raw execution artifact
+- upload the raw CSV into a GCS bucket
+- organize files under a date-based raw landing path
+
+Implementation details and run instructions are available in [Kestra/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/README.md).
 
 ## Transformations
 

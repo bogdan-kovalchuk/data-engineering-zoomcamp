@@ -1,0 +1,27 @@
+id: set_kv
+namespace: london_transport
+
+tasks:
+  - id: gcp_project_id
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_PROJECT_ID
+    kvType: STRING
+    value: your-gcp-project-id
+
+  - id: gcp_location
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_LOCATION
+    kvType: STRING
+    value: europe-west2
+
+  - id: gcp_bucket_name
+    type: io.kestra.plugin.core.kv.Set
+    key: GCP_BUCKET_NAME
+    kvType: STRING
+    value: your-unique-london-transport-bucket
+
+  - id: dataset_url
+    type: io.kestra.plugin.core.kv.Set
+    key: DATASET_URL
+    kvType: STRING
+    value: https://data.london.gov.uk/download/ep8ow/06a805f6-77c6-481a-8b08-ddef56afffdd/tfl-journeys-type.csv
