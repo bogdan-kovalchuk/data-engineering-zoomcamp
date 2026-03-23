@@ -4,7 +4,7 @@
 
 **London Transport Analytics** is a cloud-native data engineering project designed to analyze trends in London's public transport usage through an **end-to-end batch data pipeline**. The project focuses on collecting official transport usage data, storing it in a structured analytics platform, and exposing insights through an interactive dashboard.
 
-The solution is intended to automate the movement of data from the source into a **data lake**, process and model it inside a **data warehouse**, and prepare a clean analytical layer for business-style reporting.
+The solution is being built to automate the movement of data from the source into a **data lake**, process and model it inside a **data warehouse**, and prepare a clean analytical layer for business-style reporting.
 
 ## Problem Statement
 
@@ -27,9 +27,27 @@ The project will focus on journey volumes across major London transport modes, s
 - Overground
 - Cable Car
 
+## Current Status
+
+The project is being developed in stages.
+
+Completed so far:
+
+- raw data ingestion workflow in **Kestra**
+- automated download of the official TfL CSV dataset
+- upload of raw CSV files into **Google Cloud Storage**
+- dedicated documentation for the ingestion layer
+
+Planned next:
+
+- provision cloud resources with **Terraform**
+- load raw data from **GCS** into **BigQuery**
+- build transformed analytical tables
+- publish a dashboard in **Looker Studio**
+
 ## Architecture and Highlights
 
-This project will follow a batch architecture with the following target flow:
+This project follows a batch architecture with the following target flow:
 
 1. **Source dataset** -> official transport dataset file
 2. **Data lake** -> raw files stored in cloud object storage
@@ -37,11 +55,11 @@ This project will follow a batch architecture with the following target flow:
 4. **Transformations** -> cleaned and modeled tables for reporting
 5. **Dashboard** -> visual layer for exploring transport trends
 
-### Planned Solution Highlights
+### Solution Highlights
 
 - **Cloud-Native & Infrastructure as Code (IaC)**: cloud resources will be provisioned and managed using an IaC tool.
-- **Batch Data Pipeline with Workflow Orchestration**: ingestion and loading steps will be automated through an orchestrated workflow.
-- **Optimized Data Warehouse**: analytical tables will be partitioned and, where appropriate, clustered for efficient queries.
+- **Batch Data Pipeline with Workflow Orchestration**: the first implemented stage uses **Kestra** to orchestrate raw data ingestion into the data lake.
+- **Optimized Data Warehouse**: analytical tables will later be partitioned and, where appropriate, clustered for efficient queries.
 - **Transformations for Analytics**: transformation logic will prepare reporting-friendly tables for the dashboard.
 - **Interactive Dashboard**: the final dashboard will present temporal and categorical views of the data.
 
@@ -55,7 +73,7 @@ Planned analytical questions include:
 - Which transport types contribute the most journeys?
 - How do usage patterns differ by month or year?
 
-## Planned Technology Stack
+## Technology Stack
 
 - **Cloud**: GCP
 - **Data lake**: Google Cloud Storage
@@ -76,7 +94,7 @@ Additional filters and visuals may be added during implementation.
 
 ## Repository Structure
 
-This section will be updated as the project evolves. A tentative structure is shown below:
+This section reflects the repository structure after implementing the first ingestion stage:
 
 ```text
 london-transport-analytics/
@@ -98,9 +116,11 @@ This section will describe:
 - Terraform deployment steps
 - cleanup instructions
 
+Infrastructure provisioning is planned for the next stage.
+
 ## Data Ingestion
 
-The first implemented stage of the project uses **Kestra** to automate raw data ingestion.
+The first implemented stage of the project uses **Kestra** to automate raw data ingestion into the data lake.
 
 The ingestion flow will:
 
@@ -111,6 +131,18 @@ The ingestion flow will:
 
 Implementation details and run instructions are available in [Kestra/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/README.md).
 
+### Implemented Ingestion Components
+
+- [Kestra/docker-compose.yml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/docker-compose.yml) -> local Kestra environment
+- [Kestra/set_kv.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/set_kv.yaml) -> project KV initialization
+- [Kestra/data_load_gcs.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/data_load_gcs.yaml) -> end-to-end raw ingestion flow
+
+### Target Raw Layout
+
+```text
+gs://<bucket>/raw/tfl_journeys_by_type/extract_date=YYYY-MM-DD/tfl_journeys_by_type_YYYY-MM-DD.csv
+```
+
 ## Transformations
 
 This section will describe:
@@ -120,6 +152,8 @@ This section will describe:
 - partitioning and clustering strategy
 - transformation execution steps
 
+This stage has not been implemented yet.
+
 ## Data Warehousing
 
 This section will describe:
@@ -127,6 +161,8 @@ This section will describe:
 - dataset and table design
 - schema optimization
 - loading strategy from lake to warehouse
+
+This stage has not been implemented yet.
 
 ## Dashboard
 
@@ -136,18 +172,33 @@ This section will describe:
 - chart definitions
 - access instructions
 
+This stage has not been implemented yet.
+
 ## Reproducibility
 
-This section will describe:
+At the current stage, the project already includes reproducible files for local workflow orchestration and raw ingestion setup.
+
+The full project reproducibility guide will later describe:
 
 - full setup steps
 - required credentials and environment variables
 - command sequence to reproduce the pipeline
 
+For the current ingestion stage, you will need:
+
+- Docker Desktop
+- a GCP project
+- a GCS bucket
+- a GCP service account JSON secret
+- configured Kestra KV values and secrets
+
 ## Future Improvement Opportunities
 
+- Add Terraform-managed cloud resources
+- Load raw data from GCS into BigQuery
+- Add transformation models for analytics
+- Build the final Looker Studio dashboard
 - Add automated scheduling for periodic refreshes
-- Extend the dashboard with additional transport KPIs
 - Add data quality checks
 - Introduce richer analytical dimensions
 
