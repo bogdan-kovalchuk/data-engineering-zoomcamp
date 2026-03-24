@@ -36,11 +36,12 @@ Completed so far:
 - raw data ingestion workflow in **Kestra**
 - automated download of the official TfL CSV dataset
 - upload of raw CSV files into **Google Cloud Storage**
+- infrastructure scaffold in **Terraform**
+- definitions for **GCS data lake** and **BigQuery dataset**
 - dedicated documentation for the ingestion layer
 
 Planned next:
 
-- provision cloud resources with **Terraform**
 - load raw data from **GCS** into **BigQuery**
 - build transformed analytical tables
 - publish a dashboard in **Looker Studio**
@@ -94,7 +95,7 @@ Additional filters and visuals may be added during implementation.
 
 ## Repository Structure
 
-This section reflects the repository structure after implementing the first ingestion stage:
+This section reflects the repository structure after implementing the first two project stages:
 
 ```text
 london-transport-analytics/
@@ -109,14 +110,14 @@ london-transport-analytics/
 
 ## Infrastructure Setup
 
-This section will describe:
+The second implemented stage of the project defines the cloud infrastructure layer with **Terraform**.
 
-- prerequisites
-- authentication steps
-- Terraform deployment steps
-- cleanup instructions
+Provisioned resources:
 
-Infrastructure provisioning is planned for the next stage.
+- **Google Cloud Storage bucket** for the raw data lake
+- **BigQuery dataset** for downstream analytical tables
+
+Terraform files and setup instructions are available in [Terraform/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/README.md).
 
 ## Data Ingestion
 
@@ -192,9 +193,14 @@ For the current ingestion stage, you will need:
 - a GCP service account JSON secret
 - configured Kestra KV values and secrets
 
+For the current infrastructure stage, you will also need:
+
+- Terraform CLI
+- a `terraform.tfvars` file based on the provided example
+- `GOOGLE_APPLICATION_CREDENTIALS` pointing to your service account JSON
+
 ## Future Improvement Opportunities
 
-- Add Terraform-managed cloud resources
 - Load raw data from GCS into BigQuery
 - Add transformation models for analytics
 - Build the final Looker Studio dashboard
