@@ -29,7 +29,7 @@ The project will focus on journey volumes across major London transport modes, s
 
 ## Current Status
 
-The project is being developed in stages, and the first three stages are already scaffolded.
+The project is being developed in stages, and the first four stages are already scaffolded.
 
 Completed so far:
 
@@ -42,11 +42,14 @@ Completed so far:
 - raw load flow from **GCS** into **BigQuery**
 - explicit raw schema for the source CSV columns
 - latest-file loading strategy from the raw landing zone
+- **Stage 4: Transformations**
+- dashboard-ready mart table design in **BigQuery**
+- parsed dates, typed metrics, and long-format transport modeling
+- partitioning by date and clustering by transport type
 - dedicated module-level documentation for the implemented stages
 
 Planned next:
 
-- **Stage 4**: build transformed analytical tables
 - **Stage 5**: publish a dashboard in **Looker Studio**
 
 ## Architecture and Highlights
@@ -63,9 +66,9 @@ This project follows a batch architecture with the following target flow:
 
 - **Cloud-Native & Infrastructure as Code (IaC)**: the infrastructure layer is defined with **Terraform** for reproducible cloud resource provisioning.
 - **Batch Data Pipeline with Workflow Orchestration**: the ingestion and raw loading layers use **Kestra** to orchestrate both `source -> GCS` and `GCS -> BigQuery`.
-- **Layered Warehouse Design**: the project already includes a raw warehouse layer in **BigQuery**, with transformations planned on top of it.
-- **Optimized Data Warehouse**: analytical tables will later be partitioned and, where appropriate, clustered for efficient queries.
-- **Transformations for Analytics**: transformation logic will prepare reporting-friendly tables for the dashboard.
+- **Layered Warehouse Design**: the project already includes both a raw warehouse layer and a transformed mart layer in **BigQuery**.
+- **Optimized Data Warehouse**: the transformed mart is designed to be partitioned by date and clustered by transport type.
+- **Transformations for Analytics**: the transformation layer parses dates, casts journey values, and reshapes the data into a dashboard-friendly model.
 - **Interactive Dashboard**: the final dashboard will present temporal and categorical views of the data.
 
 ## Dataset
@@ -84,7 +87,7 @@ Planned analytical questions include:
 - **Data lake**: Google Cloud Storage
 - **Data warehouse**: BigQuery
 - **Workflow orchestration**: Kestra
-- **Transformations**: Planned
+- **Transformations**: BigQuery SQL orchestrated with Kestra
 - **Dashboard**: Looker Studio
 - **IaC**: Terraform
 
@@ -99,7 +102,7 @@ Additional filters and visuals may be added during implementation.
 
 ## Repository Structure
 
-This section reflects the repository structure after implementing the first three project stages:
+This section reflects the repository structure after implementing the first four project stages:
 
 ```text
 london-transport-analytics/
@@ -160,14 +163,19 @@ gs://<bucket>/raw/tfl_journeys_by_type/extract_date=YYYY-MM-DD/tfl_journeys_by_t
 
 ## Transformations
 
-This section will describe:
+The fourth implemented stage builds the first dashboard-ready analytical mart.
 
-- raw-to-staging logic
-- analytical model design
-- partitioning and clustering strategy
-- transformation execution steps
+The transformation layer is responsible for:
 
-This stage has not been implemented yet.
+- parsing reporting dates from the raw source
+- casting journey metrics into numeric fields
+- reshaping transport columns from wide to long format
+- producing a mart table optimized for dashboard queries
+
+### Implemented Transformation Components
+
+- [Kestra/build_mart_bigquery.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/build_mart_bigquery.yaml) -> BigQuery mart build flow
+- [transformations/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/transformations/README.md) -> transformation layer documentation
 
 ## Data Warehousing
 
@@ -206,6 +214,7 @@ At the current stage, the project already includes reproducible files for:
 - infrastructure provisioning with **Terraform**
 - raw loading from **GCS** into **BigQuery**
 - raw warehouse schema definition inside the loading flow
+- transformed mart creation inside **BigQuery**
 
 The full project reproducibility guide will later describe:
 
@@ -229,7 +238,6 @@ For the current infrastructure stage, you will also need:
 
 ## Future Improvement Opportunities
 
-- Add transformation models for analytics
 - Build the final Looker Studio dashboard
 - Add automated scheduling for periodic refreshes
 - Add data quality checks
