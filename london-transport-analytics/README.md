@@ -29,22 +29,22 @@ The project will focus on journey volumes across major London transport modes, s
 
 ## Current Status
 
-The project is being developed in stages.
+The project is being developed in stages, and the first two stages are already scaffolded.
 
 Completed so far:
 
-- raw data ingestion workflow in **Kestra**
+- **Stage 1: Data ingestion with Kestra**
 - automated download of the official TfL CSV dataset
 - upload of raw CSV files into **Google Cloud Storage**
-- infrastructure scaffold in **Terraform**
-- definitions for **GCS data lake** and **BigQuery dataset**
-- dedicated documentation for the ingestion layer
+- **Stage 2: Infrastructure with Terraform**
+- infrastructure definitions for the **GCS data lake** and **BigQuery dataset**
+- dedicated module-level documentation for both stages
 
 Planned next:
 
-- load raw data from **GCS** into **BigQuery**
-- build transformed analytical tables
-- publish a dashboard in **Looker Studio**
+- **Stage 3**: load raw data from **GCS** into **BigQuery**
+- **Stage 4**: build transformed analytical tables
+- **Stage 5**: publish a dashboard in **Looker Studio**
 
 ## Architecture and Highlights
 
@@ -58,8 +58,8 @@ This project follows a batch architecture with the following target flow:
 
 ### Solution Highlights
 
-- **Cloud-Native & Infrastructure as Code (IaC)**: cloud resources will be provisioned and managed using an IaC tool.
-- **Batch Data Pipeline with Workflow Orchestration**: the first implemented stage uses **Kestra** to orchestrate raw data ingestion into the data lake.
+- **Cloud-Native & Infrastructure as Code (IaC)**: the infrastructure layer is defined with **Terraform** for reproducible cloud resource provisioning.
+- **Batch Data Pipeline with Workflow Orchestration**: the ingestion layer uses **Kestra** to orchestrate raw data ingestion into the data lake.
 - **Optimized Data Warehouse**: analytical tables will later be partitioned and, where appropriate, clustered for efficient queries.
 - **Transformations for Analytics**: transformation logic will prepare reporting-friendly tables for the dashboard.
 - **Interactive Dashboard**: the final dashboard will present temporal and categorical views of the data.
@@ -119,6 +119,15 @@ Provisioned resources:
 
 Terraform files and setup instructions are available in [Terraform/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/README.md).
 
+### Implemented Infrastructure Components
+
+- [Terraform/main.tf](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/main.tf) -> provider and resource definitions
+- [Terraform/variables.tf](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/variables.tf) -> configurable inputs
+- [Terraform/outputs.tf](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/outputs.tf) -> provisioned resource outputs
+- [Terraform/terraform.tfvars.example](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/terraform.tfvars.example) -> example runtime configuration
+- [Terraform/setup.ps1](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/setup.ps1) -> credentials helper
+- [Terraform/deploy.ps1](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/deploy.ps1) -> init/plan/apply helper
+
 ## Data Ingestion
 
 The first implemented stage of the project uses **Kestra** to automate raw data ingestion into the data lake.
@@ -177,7 +186,11 @@ This stage has not been implemented yet.
 
 ## Reproducibility
 
-At the current stage, the project already includes reproducible files for local workflow orchestration and raw ingestion setup.
+At the current stage, the project already includes reproducible files for:
+
+- local workflow orchestration with **Kestra**
+- raw ingestion into **GCS**
+- infrastructure provisioning with **Terraform**
 
 The full project reproducibility guide will later describe:
 
