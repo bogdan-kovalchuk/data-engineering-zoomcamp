@@ -29,7 +29,7 @@ The project will focus on journey volumes across major London transport modes, s
 
 ## Current Status
 
-The project is being developed in stages, and the first four stages are already scaffolded.
+The project is being developed in stages, and the first five stages are now scaffolded.
 
 Completed so far:
 
@@ -46,11 +46,14 @@ Completed so far:
 - dashboard-ready mart table design in **BigQuery**
 - parsed dates, typed metrics, and long-format transport modeling
 - partitioning by date and clustering by transport type
+- **Stage 5: Dashboard preparation**
+- dashboard-ready BigQuery views for the two required tiles
+- end-to-end `Kestra` orchestration from source to dashboard sources
 - dedicated module-level documentation for the implemented stages
 
 Planned next:
 
-- **Stage 5**: publish a dashboard in **Looker Studio**
+- create the final **Looker Studio** report online and add screenshots or a shared link
 
 ## Architecture and Highlights
 
@@ -65,11 +68,11 @@ This project follows a batch architecture with the following target flow:
 ### Solution Highlights
 
 - **Cloud-Native & Infrastructure as Code (IaC)**: the infrastructure layer is defined with **Terraform** for reproducible cloud resource provisioning.
-- **Batch Data Pipeline with Workflow Orchestration**: the ingestion and raw loading layers use **Kestra** to orchestrate both `source -> GCS` and `GCS -> BigQuery`.
+- **Batch Data Pipeline with Workflow Orchestration**: the project includes an end-to-end `Kestra` pipeline orchestrating `source -> GCS -> BigQuery raw -> BigQuery mart -> dashboard views`.
 - **Layered Warehouse Design**: the project already includes both a raw warehouse layer and a transformed mart layer in **BigQuery**.
 - **Optimized Data Warehouse**: the transformed mart is designed to be partitioned by date and clustered by transport type.
 - **Transformations for Analytics**: the transformation layer parses dates, casts journey values, and reshapes the data into a dashboard-friendly model.
-- **Interactive Dashboard**: the final dashboard will present temporal and categorical views of the data.
+- **Dashboard-Ready Outputs**: the project now includes two BigQuery views tailored for the required temporal and categorical dashboard tiles.
 
 ## Dataset
 
@@ -93,16 +96,16 @@ Planned analytical questions include:
 
 ## Planned Dashboard
 
-The dashboard is expected to include at least two tiles:
+The dashboard layer is prepared for at least two tiles:
 
 - **Temporal distribution**: journey volume over time
 - **Categorical distribution**: journey volume by transport type
 
-Additional filters and visuals may be added during implementation.
+The final online report can now be assembled in Looker Studio using the prepared BigQuery views.
 
 ## Repository Structure
 
-This section reflects the repository structure after implementing the first four project stages:
+This section reflects the repository structure after implementing the first five project stages:
 
 ```text
 london-transport-analytics/
@@ -154,6 +157,7 @@ Implementation details and run instructions are available in [Kestra/README.md](
 - [Kestra/set_kv.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/set_kv.yaml) -> project KV initialization
 - [Kestra/data_load_gcs.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/data_load_gcs.yaml) -> end-to-end raw ingestion flow
 - [Kestra/gcs_to_bigquery_raw.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/gcs_to_bigquery_raw.yaml) -> raw load flow from GCS to BigQuery
+- [Kestra/end_to_end_pipeline.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/end_to_end_pipeline.yaml) -> master batch pipeline
 
 ### Target Raw Layout
 
@@ -197,13 +201,19 @@ Current warehouse documentation is available in [warehouse/README.md](C:/Users/b
 
 ## Dashboard
 
-This section will describe:
+The fifth implemented stage prepares the dashboard data sources.
 
-- dashboard design
-- chart definitions
-- access instructions
+The dashboard layer currently includes:
 
-This stage has not been implemented yet.
+- a time-series BigQuery view for the temporal chart
+- a category distribution BigQuery view for the transport comparison chart
+- a documented Looker Studio setup path
+
+### Implemented Dashboard Components
+
+- [Kestra/build_dashboard_views_bigquery.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/build_dashboard_views_bigquery.yaml) -> dashboard source view creation
+- [dashboard/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/dashboard/README.md) -> dashboard setup guide
+- [dashboard/create_dashboard_views.sql](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/dashboard/create_dashboard_views.sql) -> manual SQL version of the dashboard views
 
 ## Reproducibility
 
@@ -215,33 +225,84 @@ At the current stage, the project already includes reproducible files for:
 - raw loading from **GCS** into **BigQuery**
 - raw warehouse schema definition inside the loading flow
 - transformed mart creation inside **BigQuery**
+- dashboard source view creation inside **BigQuery**
+- end-to-end orchestration through a master `Kestra` flow
 
-The full project reproducibility guide will later describe:
+## End-to-End Run
 
-- full setup steps
-- required credentials and environment variables
-- command sequence to reproduce the pipeline
+Use the following sequence to reproduce the full pipeline.
 
-For the current ingestion stage, you will need:
+### 1. Provision Infrastructure
 
-- Docker Desktop
-- a GCP project
-- a GCS bucket
-- a GCP service account JSON secret
-- configured Kestra KV values and secrets
+```powershell
+cd Terraform
+Copy-Item terraform.tfvars.example terraform.tfvars
+.\setup.ps1 -CredentialsPath "C:\path\to\service-account.json"
+.\deploy.ps1
+```
 
-For the current infrastructure stage, you will also need:
+### 2. Start Kestra
 
-- Terraform CLI
-- a `terraform.tfvars` file based on the provided example
-- `GOOGLE_APPLICATION_CREDENTIALS` pointing to your service account JSON
+```powershell
+cd ..\Kestra
+docker-compose up
+```
+
+### 3. Configure Kestra
+
+Import the following files into the `london_transport` namespace:
+
+- `set_kv.yaml`
+- `data_load_gcs.yaml`
+- `gcs_to_bigquery_raw.yaml`
+- `build_mart_bigquery.yaml`
+- `build_dashboard_views_bigquery.yaml`
+- `end_to_end_pipeline.yaml`
+
+Then:
+
+- create the secret `GCP_SERVICE_ACCOUNT`
+- run `set_kv.yaml`
+- update KV values if you changed dataset, bucket, or table names
+
+### 4. Run the Pipeline
+
+Run:
+
+- `end_to_end_pipeline.yaml`
+
+This will:
+
+- download the source CSV
+- upload raw data to GCS
+- load raw data into BigQuery
+- build the mart table
+- create the dashboard views
+
+### 5. Build the Online Dashboard
+
+Open Looker Studio and connect to:
+
+- `transport_journeys_over_time_v`
+- `transport_type_distribution_v`
+
+The remaining final online artifact is the actual Looker Studio report link or screenshot.
+
+## Reproducibility Notes
+
+The current reproducibility setup covers all code and orchestration layers in the repository.
+
+The final online artifact still needs to be created manually:
+
+- a shared Looker Studio dashboard link
+- or dashboard screenshots for the final submission
 
 ## Future Improvement Opportunities
 
-- Build the final Looker Studio dashboard
 - Add automated scheduling for periodic refreshes
 - Add data quality checks
 - Introduce richer analytical dimensions
+- Replace the transformation layer with dbt if deeper analytics engineering is required
 
 ## Acknowledgments
 

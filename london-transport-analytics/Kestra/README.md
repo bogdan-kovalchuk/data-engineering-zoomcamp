@@ -15,6 +15,8 @@ The current goal of this stage is straightforward:
 - `data_load_gcs.yaml` -> downloads the dataset and uploads it to GCS
 - `gcs_to_bigquery_raw.yaml` -> loads the latest raw CSV from GCS into BigQuery
 - `build_mart_bigquery.yaml` -> builds the transformed mart table in BigQuery
+- `build_dashboard_views_bigquery.yaml` -> builds BigQuery views for the dashboard tiles
+- `end_to_end_pipeline.yaml` -> orchestrates the full batch pipeline from source to dashboard-ready layer
 
 ## Prerequisites
 
@@ -49,6 +51,8 @@ Before running the ingestion flow, configure:
 - KV `BQ_DATASET_NAME`
 - KV `BQ_RAW_TABLE_NAME`
 - KV `BQ_MART_TABLE_NAME`
+- KV `BQ_DASHBOARD_TIME_VIEW_NAME`
+- KV `BQ_DASHBOARD_CATEGORY_VIEW_NAME`
 
 You can initialize the KV values by importing and running `set_kv.yaml`.
 
@@ -75,6 +79,25 @@ The `GCP_SERVICE_ACCOUNT` secret should contain the full JSON credentials of you
 2. Parses dates and numeric fields.
 3. Reshapes transport columns into a long-format analytical mart.
 4. Creates a partitioned and clustered BigQuery table for dashboard usage.
+
+`build_dashboard_views_bigquery.yaml` performs the following steps:
+
+1. Reads the transformed mart table.
+2. Builds a time-series dashboard view.
+3. Builds a transport distribution dashboard view.
+
+`end_to_end_pipeline.yaml` orchestrates the full batch workflow:
+
+1. Source dataset -> GCS raw
+2. GCS raw -> BigQuery raw
+3. BigQuery raw -> BigQuery mart
+4. BigQuery mart -> dashboard views
+
+## Recommended Run Order
+
+1. Import and run `set_kv.yaml`
+2. Import the other flow files
+3. Run `end_to_end_pipeline.yaml`
 
 ## Target GCS Layout
 

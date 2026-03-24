@@ -43,3 +43,15 @@ tasks:
     key: BQ_MART_TABLE_NAME
     kvType: STRING
     value: transport_journeys_mart
+
+  - id: bq_dashboard_time_view_name
+    type: io.kestra.plugin.core.kv.Set
+    key: BQ_DASHBOARD_TIME_VIEW_NAME
+    kvType: STRING
+    value: transport_journeys_over_time_v
+
+  - id: bq_dashboard_category_view_name
+    type: io.kestra.plugin.core.kv.Set
+    key: BQ_DASHBOARD_CATEGORY_VIEW_NAME
+    kvType: STRING
+    value: transport_type_distribution_v
