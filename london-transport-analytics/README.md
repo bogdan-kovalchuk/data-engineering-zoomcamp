@@ -4,7 +4,7 @@
 
 **London Transport Analytics** is a cloud-native data engineering project designed to analyze trends in London's public transport usage through an **end-to-end batch data pipeline**. The project focuses on collecting official transport usage data, storing it in a structured analytics platform, and exposing insights through an interactive dashboard.
 
-The solution is being built to automate the movement of data from the source into a **data lake**, process and model it inside a **data warehouse**, and prepare a clean analytical layer for business-style reporting.
+The solution is being built to automate the movement of data from the source into a **data lake**, load it into a **data warehouse**, and prepare a clean analytical layer for business-style reporting.
 
 ## Problem Statement
 
@@ -40,6 +40,8 @@ Completed so far:
 - infrastructure definitions for the **GCS data lake** and **BigQuery dataset**
 - **Stage 3: Raw warehouse loading**
 - raw load flow from **GCS** into **BigQuery**
+- explicit raw schema for the source CSV columns
+- latest-file loading strategy from the raw landing zone
 - dedicated module-level documentation for the implemented stages
 
 Planned next:
@@ -60,7 +62,8 @@ This project follows a batch architecture with the following target flow:
 ### Solution Highlights
 
 - **Cloud-Native & Infrastructure as Code (IaC)**: the infrastructure layer is defined with **Terraform** for reproducible cloud resource provisioning.
-- **Batch Data Pipeline with Workflow Orchestration**: the ingestion layer uses **Kestra** to orchestrate raw data ingestion into the data lake.
+- **Batch Data Pipeline with Workflow Orchestration**: the ingestion and raw loading layers use **Kestra** to orchestrate both `source -> GCS` and `GCS -> BigQuery`.
+- **Layered Warehouse Design**: the project already includes a raw warehouse layer in **BigQuery**, with transformations planned on top of it.
 - **Optimized Data Warehouse**: analytical tables will later be partitioned and, where appropriate, clustered for efficient queries.
 - **Transformations for Analytics**: transformation logic will prepare reporting-friendly tables for the dashboard.
 - **Interactive Dashboard**: the final dashboard will present temporal and categorical views of the data.
@@ -81,7 +84,7 @@ Planned analytical questions include:
 - **Data lake**: Google Cloud Storage
 - **Data warehouse**: BigQuery
 - **Workflow orchestration**: Kestra
-- **Transformations**: To be finalized
+- **Transformations**: Planned
 - **Dashboard**: Looker Studio
 - **IaC**: Terraform
 
@@ -175,6 +178,12 @@ The current warehouse layer is responsible for:
 - locating the latest raw CSV in **GCS**
 - loading that file into a **BigQuery raw table**
 - preserving source columns in a raw schema for downstream transformations
+- keeping the source structure close to the original file before modeling
+
+### Implemented Warehouse Components
+
+- [Kestra/gcs_to_bigquery_raw.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/gcs_to_bigquery_raw.yaml) -> latest-file raw load from GCS to BigQuery
+- [warehouse/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/warehouse/README.md) -> raw warehouse layer documentation
 
 Current warehouse documentation is available in [warehouse/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/warehouse/README.md).
 
@@ -196,6 +205,7 @@ At the current stage, the project already includes reproducible files for:
 - raw ingestion into **GCS**
 - infrastructure provisioning with **Terraform**
 - raw loading from **GCS** into **BigQuery**
+- raw warehouse schema definition inside the loading flow
 
 The full project reproducibility guide will later describe:
 
