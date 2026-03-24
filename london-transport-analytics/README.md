@@ -29,7 +29,7 @@ The project will focus on journey volumes across major London transport modes, s
 
 ## Current Status
 
-The project is being developed in stages, and the first two stages are already scaffolded.
+The project is being developed in stages, and the first three stages are already scaffolded.
 
 Completed so far:
 
@@ -38,11 +38,12 @@ Completed so far:
 - upload of raw CSV files into **Google Cloud Storage**
 - **Stage 2: Infrastructure with Terraform**
 - infrastructure definitions for the **GCS data lake** and **BigQuery dataset**
-- dedicated module-level documentation for both stages
+- **Stage 3: Raw warehouse loading**
+- raw load flow from **GCS** into **BigQuery**
+- dedicated module-level documentation for the implemented stages
 
 Planned next:
 
-- **Stage 3**: load raw data from **GCS** into **BigQuery**
 - **Stage 4**: build transformed analytical tables
 - **Stage 5**: publish a dashboard in **Looker Studio**
 
@@ -95,15 +96,15 @@ Additional filters and visuals may be added during implementation.
 
 ## Repository Structure
 
-This section reflects the repository structure after implementing the first two project stages:
+This section reflects the repository structure after implementing the first three project stages:
 
 ```text
 london-transport-analytics/
 |-- README.md
 |-- Terraform/
 |-- Kestra/
-|-- transformations/
 |-- warehouse/
+|-- transformations/
 |-- dashboard/
 |-- images/
 ```
@@ -146,6 +147,7 @@ Implementation details and run instructions are available in [Kestra/README.md](
 - [Kestra/docker-compose.yml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/docker-compose.yml) -> local Kestra environment
 - [Kestra/set_kv.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/set_kv.yaml) -> project KV initialization
 - [Kestra/data_load_gcs.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/data_load_gcs.yaml) -> end-to-end raw ingestion flow
+- [Kestra/gcs_to_bigquery_raw.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/gcs_to_bigquery_raw.yaml) -> raw load flow from GCS to BigQuery
 
 ### Target Raw Layout
 
@@ -166,13 +168,15 @@ This stage has not been implemented yet.
 
 ## Data Warehousing
 
-This section will describe:
+The third implemented stage introduces the initial warehouse loading step.
 
-- dataset and table design
-- schema optimization
-- loading strategy from lake to warehouse
+The current warehouse layer is responsible for:
 
-This stage has not been implemented yet.
+- locating the latest raw CSV in **GCS**
+- loading that file into a **BigQuery raw table**
+- preserving source columns in a raw schema for downstream transformations
+
+Current warehouse documentation is available in [warehouse/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/warehouse/README.md).
 
 ## Dashboard
 
@@ -191,6 +195,7 @@ At the current stage, the project already includes reproducible files for:
 - local workflow orchestration with **Kestra**
 - raw ingestion into **GCS**
 - infrastructure provisioning with **Terraform**
+- raw loading from **GCS** into **BigQuery**
 
 The full project reproducibility guide will later describe:
 
@@ -214,7 +219,6 @@ For the current infrastructure stage, you will also need:
 
 ## Future Improvement Opportunities
 
-- Load raw data from GCS into BigQuery
 - Add transformation models for analytics
 - Build the final Looker Studio dashboard
 - Add automated scheduling for periodic refreshes

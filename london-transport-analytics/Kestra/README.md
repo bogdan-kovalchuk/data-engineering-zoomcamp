@@ -13,6 +13,7 @@ The current goal of this stage is straightforward:
 - `docker-compose.yml` -> local Kestra environment
 - `set_kv.yaml` -> initializes required project KV variables
 - `data_load_gcs.yaml` -> downloads the dataset and uploads it to GCS
+- `gcs_to_bigquery_raw.yaml` -> loads the latest raw CSV from GCS into BigQuery
 
 ## Prerequisites
 
@@ -44,6 +45,8 @@ Before running the ingestion flow, configure:
 - KV `GCP_LOCATION`
 - KV `GCP_BUCKET_NAME`
 - KV `DATASET_URL`
+- KV `BQ_DATASET_NAME`
+- KV `BQ_RAW_TABLE_NAME`
 
 You can initialize the KV values by importing and running `set_kv.yaml`.
 
@@ -57,6 +60,12 @@ The `GCP_SERVICE_ACCOUNT` secret should contain the full JSON credentials of you
 2. Performs a lightweight validation to ensure the file is not empty.
 3. Uploads the raw file to GCS under a partition-like landing path.
 4. Cleans temporary execution files.
+
+`gcs_to_bigquery_raw.yaml` performs the following steps:
+
+1. Finds the latest raw CSV file in the GCS landing path.
+2. Loads the file into a BigQuery raw table.
+3. Preserves the source columns as raw strings for downstream transformation.
 
 ## Target GCS Layout
 

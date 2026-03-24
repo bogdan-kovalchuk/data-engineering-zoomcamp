@@ -25,3 +25,15 @@ tasks:
     key: DATASET_URL
     kvType: STRING
     value: https://data.london.gov.uk/download/ep8ow/06a805f6-77c6-481a-8b08-ddef56afffdd/tfl-journeys-type.csv
+
+  - id: bq_dataset_name
+    type: io.kestra.plugin.core.kv.Set
+    key: BQ_DATASET_NAME
+    kvType: STRING
+    value: london_transport_dw
+
+  - id: bq_raw_table_name
+    type: io.kestra.plugin.core.kv.Set
+    key: BQ_RAW_TABLE_NAME
+    kvType: STRING
+    value: transport_journeys_raw
