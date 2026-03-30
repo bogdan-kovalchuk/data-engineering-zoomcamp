@@ -1,31 +1,31 @@
 # Transformations Layer
 
-This module documents the first analytical transformation stage for **London Transport Analytics**.
+This module documents the analytical mart used by the dashboard layer.
 
-## Current Scope
+## Scope
 
-The transformation stage builds a dashboard-ready mart table from the raw warehouse table.
+The transformation step builds `transport_journeys_mart` from the raw BigQuery table.
 
-The current mart performs:
+It performs:
 
-- date parsing from the raw source strings
+- date parsing from raw strings
 - numeric casting for journey metrics
-- reshaping from a wide transport layout into a long analytical layout
-- partitioning and clustering for downstream query efficiency
+- wide-to-long reshaping across transport modes
+- partitioning and clustering for dashboard-friendly queries
 
 ## Target Mart Table
 
 - dataset: `london_transport_dw`
 - table: `transport_journeys_mart`
 
-## Analytical Model
+## Output Grain
 
-The transformed mart contains one row per:
+One row per:
 
 - reporting period
 - transport type
 
-Key output fields include:
+Key fields:
 
 - `period_and_financial_year`
 - `reporting_period`
@@ -38,18 +38,19 @@ Key output fields include:
 - `transport_type`
 - `journeys_m`
 
-## Optimization Strategy
+## Storage Optimization
 
-The current mart table is designed as:
+The mart is:
 
-- **partitioned by** `period_beginning_date`
-- **clustered by** `transport_type`
+- partitioned by `period_beginning_date`
+- clustered by `transport_type`
 
-This supports the expected dashboard access patterns:
+That matches the main access patterns used in the dashboard:
 
-- time-based trend analysis
-- category-based comparisons by transport mode
+- temporal trend analysis
+- category distribution by transport mode
 
-## Orchestration
+## Files
 
-The mart build is orchestrated through [build_mart_bigquery.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/build_mart_bigquery.yaml).
+- [build_mart_bigquery.yaml](../Kestra/build_mart_bigquery.yaml): orchestrated mart build
+- [create_transport_mart.sql](create_transport_mart.sql): manual SQL version of the same transformation

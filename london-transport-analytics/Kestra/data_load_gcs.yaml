@@ -10,34 +10,36 @@ variables:
 
 tasks:
   - id: fetch_dataset
-    type: io.kestra.plugin.scripts.python.Script
+    type: io.kestra.plugin.scripts.python.commands
     beforeCommands:
       - pip install requests
-    docker:
-      image: python:3.11-slim
+    containerImage: python:3.11-slim
+    commands:
+      - python main.py
+    inputFiles:
+      main.py: |
+        import csv
+        import pathlib
+        import requests
+
+        dataset_url = "{{ kv('DATASET_URL') }}"
+        output_file = pathlib.Path("{{ vars.file_name }}")
+
+        response = requests.get(dataset_url, timeout=120)
+        response.raise_for_status()
+        output_file.write_bytes(response.content)
+
+        with output_file.open("r", encoding="utf-8-sig", newline="") as csv_file:
+            reader = csv.reader(csv_file)
+            rows = list(reader)
+
+        if len(rows) < 2:
+            raise ValueError("Downloaded CSV is empty or does not contain data rows.")
+
+        header = rows[0]
+        if len(header) < 2:
+            raise ValueError("Downloaded CSV does not have the expected tabular structure.")
     warningOnStdErr: false
-    script: |
-      import csv
-      import pathlib
-      import requests
-
-      dataset_url = "{{ kv('DATASET_URL') }}"
-      output_file = pathlib.Path("{{ vars.file_name }}")
-
-      response = requests.get(dataset_url, timeout=120)
-      response.raise_for_status()
-      output_file.write_bytes(response.content)
-
-      with output_file.open("r", encoding="utf-8-sig", newline="") as csv_file:
-          reader = csv.reader(csv_file)
-          rows = list(reader)
-
-      if len(rows) < 2:
-          raise ValueError("Downloaded CSV is empty or does not contain data rows.")
-
-      header = rows[0]
-      if len(header) < 2:
-          raise ValueError("Downloaded CSV does not have the expected tabular structure.")
     outputFiles:
       - "{{ vars.file_name }}"
 

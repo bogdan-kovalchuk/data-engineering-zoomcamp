@@ -1,110 +1,104 @@
-# Kestra Ingestion
+# Kestra Orchestration
 
-This module contains the workflow orchestration layer for the raw ingestion stage of **London Transport Analytics**.
+This module contains the batch orchestration layer for London Transport Analytics.
 
-The current goal of this stage is straightforward:
+## What This Module Does
 
-1. Download the official TfL dataset as a raw CSV file.
-2. Store the raw file in **Google Cloud Storage** as the project data lake.
-3. Keep the ingestion logic reproducible and easy to rerun.
+The Kestra flows implement the end-to-end pipeline:
+
+1. Download the official TfL CSV dataset.
+2. Upload the raw file to GCS.
+3. Load the latest raw file into BigQuery.
+4. Build the partitioned mart table.
+5. Create dashboard-ready BigQuery views.
 
 ## Files
 
-- `docker-compose.yml` -> local Kestra environment
-- `set_kv.yaml` -> initializes required project KV variables
-- `data_load_gcs.yaml` -> downloads the dataset and uploads it to GCS
-- `gcs_to_bigquery_raw.yaml` -> loads the latest raw CSV from GCS into BigQuery
-- `build_mart_bigquery.yaml` -> builds the transformed mart table in BigQuery
-- `build_dashboard_views_bigquery.yaml` -> builds BigQuery views for the dashboard tiles
-- `end_to_end_pipeline.yaml` -> orchestrates the full batch pipeline from source to dashboard-ready layer
+- `docker-compose.yml`: local Kestra environment
+- `set_kv.yaml`: initializes project KV values
+- `data_load_gcs.yaml`: downloads the source file and uploads it to GCS
+- `gcs_to_bigquery_raw.yaml`: loads the latest raw CSV into BigQuery
+- `build_mart_bigquery.yaml`: creates the analytical mart table
+- `build_dashboard_views_bigquery.yaml`: creates the two dashboard views
+- `end_to_end_pipeline.yaml`: orchestrates the full DAG
 
 ## Prerequisites
 
 - Docker Desktop
-- A GCP project
-- A GCS bucket created for the data lake
-- A GCP service account with permission to write to the bucket
+- a GCP project
+- a GCS bucket and BigQuery dataset created by Terraform
+- a GCP service account with access to GCS and BigQuery
 
-## Start Kestra
+## Local Startup
 
-```bash
+```powershell
 cd Kestra
-docker-compose up
+docker compose up
 ```
 
-After Kestra starts, open `http://localhost:8080`.
+Open `http://localhost:8080`.
 
 Default local credentials:
 
 - Username: `admin@localhost.dev`
 - Password: `kestra`
 
-## Required Secrets and KV Values
+The `docker-compose.yml` file auto-loads the flow YAML files on startup using `server standalone -f /app/flows`, so manual import is no longer required for local development.
 
-Before running the ingestion flow, configure:
+## Required Secret and KV Values
 
-- Secret `GCP_SERVICE_ACCOUNT`
-- KV `GCP_PROJECT_ID`
-- KV `GCP_LOCATION`
-- KV `GCP_BUCKET_NAME`
-- KV `DATASET_URL`
-- KV `BQ_DATASET_NAME`
-- KV `BQ_RAW_TABLE_NAME`
-- KV `BQ_MART_TABLE_NAME`
-- KV `BQ_DASHBOARD_TIME_VIEW_NAME`
-- KV `BQ_DASHBOARD_CATEGORY_VIEW_NAME`
+Create the secret:
 
-You can initialize the KV values by importing and running `set_kv.yaml`.
+- `GCP_SERVICE_ACCOUNT`
 
-The `GCP_SERVICE_ACCOUNT` secret should contain the full JSON credentials of your service account.
+Initialize these KV entries by running `set_kv`:
 
-## Flow Overview
+- `GCP_PROJECT_ID`
+- `GCP_LOCATION`
+- `GCP_BUCKET_NAME`
+- `DATASET_URL`
+- `BQ_DATASET_NAME`
+- `BQ_RAW_TABLE_NAME`
+- `BQ_MART_TABLE_NAME`
+- `BQ_DASHBOARD_TIME_VIEW_NAME`
+- `BQ_DASHBOARD_CATEGORY_VIEW_NAME`
 
-`data_load_gcs.yaml` performs the following steps:
+The `GCP_SERVICE_ACCOUNT` secret must contain the full JSON payload of the service account key.
 
-1. Downloads the raw TfL CSV file with Python.
-2. Performs a lightweight validation to ensure the file is not empty.
-3. Uploads the raw file to GCS under a partition-like landing path.
-4. Cleans temporary execution files.
+## Flow Summary
 
-`gcs_to_bigquery_raw.yaml` performs the following steps:
+`data_load_gcs.yaml`
 
-1. Finds the latest raw CSV file in the GCS landing path.
-2. Loads the file into a BigQuery raw table.
-3. Preserves the source columns as raw strings for downstream transformation.
+1. Downloads the TfL CSV using Python.
+2. Validates that the file is not empty.
+3. Uploads the file to the raw GCS landing path.
+4. Removes temporary execution files.
 
-`build_mart_bigquery.yaml` performs the following steps:
+`gcs_to_bigquery_raw.yaml`
 
-1. Reads the raw BigQuery table.
-2. Parses dates and numeric fields.
-3. Reshapes transport columns into a long-format analytical mart.
-4. Creates a partitioned and clustered BigQuery table for dashboard usage.
+1. Lists raw files in GCS.
+2. Picks the latest CSV.
+3. Loads the file into the raw BigQuery table with an explicit schema.
 
-`build_dashboard_views_bigquery.yaml` performs the following steps:
+`build_mart_bigquery.yaml`
 
-1. Reads the transformed mart table.
-2. Builds a time-series dashboard view.
-3. Builds a transport distribution dashboard view.
+1. Reads the raw table.
+2. Parses dates and metrics.
+3. Reshapes wide columns into a long format.
+4. Creates a partitioned and clustered mart.
 
-`end_to_end_pipeline.yaml` orchestrates the full batch workflow:
+`build_dashboard_views_bigquery.yaml`
 
-1. Source dataset -> GCS raw
-2. GCS raw -> BigQuery raw
-3. BigQuery raw -> BigQuery mart
-4. BigQuery mart -> dashboard views
+1. Reads the mart table.
+2. Builds the temporal dashboard view.
+3. Builds the categorical dashboard view.
 
-## Recommended Run Order
+`end_to_end_pipeline.yaml`
 
-1. Import and run `set_kv.yaml`
-2. Import the other flow files
-3. Run `end_to_end_pipeline.yaml`
+Runs the four flows above in sequence as subflows.
 
 ## Target GCS Layout
-
-Raw files are uploaded using the following structure:
 
 ```text
 gs://<bucket>/raw/tfl_journeys_by_type/extract_date=YYYY-MM-DD/tfl_journeys_by_type_YYYY-MM-DD.csv
 ```
-
-This makes the raw zone easier to query, version, and reprocess later.

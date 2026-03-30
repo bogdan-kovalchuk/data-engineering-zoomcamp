@@ -1,27 +1,25 @@
 # Warehouse Layer
 
-This module documents the current warehouse stage for **London Transport Analytics**.
+This module documents the raw warehouse step for London Transport Analytics.
 
-## Current Scope
+## Scope
 
-The first warehouse step loads the latest raw CSV file from **GCS** into a **BigQuery raw table**.
+The warehouse stage loads the latest raw CSV file from GCS into a BigQuery raw table.
 
-This stage intentionally preserves the source structure with minimal interpretation:
+This layer stays intentionally close to the source:
 
-- original source columns are retained
-- columns are initially loaded as raw strings
-- parsing, cleaning, and type conversion are deferred to the transformation layer
+- original source columns are preserved
+- values are loaded as strings
+- parsing and reshaping are deferred to the transformation layer
 
 ## Raw Table
-
-Planned BigQuery raw table:
 
 - dataset: `london_transport_dw`
 - table: `transport_journeys_raw`
 
 ## Raw Schema
 
-The current raw table keeps the following source fields:
+The raw table includes:
 
 - `period_and_financial_year`
 - `reporting_period`
@@ -38,18 +36,12 @@ The current raw table keeps the following source fields:
 
 ## Loading Strategy
 
-The load is orchestrated with `Kestra` through `gcs_to_bigquery_raw.yaml`.
+The raw load is orchestrated through `Kestra/gcs_to_bigquery_raw.yaml`:
 
-The workflow:
+1. Find the latest raw CSV in the GCS landing area.
+2. Load it into BigQuery with an explicit schema.
+3. Replace the current raw snapshot with the latest file.
 
-1. Finds the latest raw CSV file in the GCS landing area.
-2. Loads the file into BigQuery using an explicit raw schema.
-3. Replaces the current raw table snapshot with the most recent load.
+## Downstream Step
 
-## Next Step
-
-The next stage will build transformed analytical tables from this raw layer by:
-
-- parsing dates
-- casting numeric fields
-- reshaping wide transport columns into a reporting-friendly model
+The transformation stage that builds the analytical mart is documented in [transformations/README.md](../transformations/README.md).

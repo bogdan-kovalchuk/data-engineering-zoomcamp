@@ -1,34 +1,37 @@
 # Terraform Infrastructure
 
-This module provisions the base cloud resources required by **London Transport Analytics**.
+This module provisions the base GCP resources required by London Transport Analytics.
 
 ## Provisioned Resources
 
-- **Google Cloud Storage bucket** for the raw data lake
-- **BigQuery dataset** for downstream warehouse and analytics tables
+- Google Cloud Storage bucket for the raw data lake
+- BigQuery dataset for raw, mart, and dashboard objects
 
 ## Files
 
-- `main.tf` -> provider and resource definitions
-- `variables.tf` -> input variables
-- `outputs.tf` -> resource outputs
-- `terraform.tfvars.example` -> example variable file
-- `setup.ps1` -> helper script for credentials setup
-- `deploy.ps1` -> helper script for Terraform init and apply
+- `main.tf`: provider and resource definitions
+- `variables.tf`: input variables
+- `outputs.tf`: provisioned resource outputs
+- `terraform.tfvars.example`: example runtime configuration
+- `setup.ps1`: credentials helper
+- `deploy.ps1`: `terraform init`, `plan`, and `apply` helper
 
 ## Prerequisites
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads)
 - Google Cloud SDK (`gcloud`)
-- A GCP service account with permissions for:
-  - `Storage Admin` or equivalent bucket creation access
-  - `BigQuery Admin` or equivalent dataset creation access
+- a GCP service account with permissions for bucket and dataset creation
+
+From the repository root on Windows:
+
+```powershell
+.\scripts\bootstrap_windows.ps1
+.\scripts\check_prereqs.ps1
+```
 
 ## Authentication
 
-Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to your service account JSON path.
-
-Example:
+Set `GOOGLE_APPLICATION_CREDENTIALS` to your service account JSON path:
 
 ```powershell
 .\setup.ps1 -CredentialsPath "C:\path\to\service-account.json"
@@ -36,13 +39,13 @@ Example:
 
 ## Configuration
 
-Create a working variable file from the example:
+Create a working variable file:
 
 ```powershell
 Copy-Item terraform.tfvars.example terraform.tfvars
 ```
 
-Then update:
+Update:
 
 - `project`
 - `region`
@@ -50,13 +53,13 @@ Then update:
 - `gcs_bucket_name`
 - `bq_dataset_name`
 
-## Deploy Infrastructure
+## Deploy
 
 ```powershell
 .\deploy.ps1
 ```
 
-Or run Terraform manually:
+Manual alternative:
 
 ```powershell
 terraform init
@@ -73,4 +76,5 @@ terraform destroy
 ## Notes
 
 - The bucket name must be globally unique.
-- After deployment, align the bucket name, project ID, and location with the values used in the `Kestra` KV store.
+- Align the Terraform bucket, dataset, project, and location values with the KV values used in Kestra.
+- `terraform init -backend=false` and `terraform validate` were run locally on March 29, 2026.

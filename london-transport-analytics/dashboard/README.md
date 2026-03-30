@@ -1,22 +1,22 @@
 # Dashboard Layer
 
-This module defines the dashboard-ready layer for **London Transport Analytics**.
+This module now provides two dashboard entry points:
 
-## Current Scope
+1. BigQuery views for Looker Studio.
+2. A local Streamlit dashboard in `app.py`.
 
-The current dashboard stage prepares two BigQuery views that can be connected directly to **Looker Studio**.
+## Included Files
 
-These two views support the required course visuals:
+- `app.py`: local dashboard with BigQuery mode and public CSV fallback
+- `requirements.txt`: Python dependencies for the Streamlit app
+- `create_dashboard_views.sql`: manual SQL for the two BigQuery views
 
-- one temporal chart
-- one categorical chart
-
-## Dashboard Sources
+## BigQuery Dashboard Views
 
 ### 1. Time-Series View
 
 - view: `transport_journeys_over_time_v`
-- purpose: trend of total transport journeys over time
+- purpose: total transport journeys over time
 - recommended chart: line chart
 - dimension: `period_beginning_date`
 - metric: `total_journeys_m`
@@ -29,11 +29,24 @@ These two views support the required course visuals:
 - dimension: `transport_type`
 - metric: `total_journeys_m`
 
-## BigQuery View Build
+The views are created by [build_dashboard_views_bigquery.yaml](../Kestra/build_dashboard_views_bigquery.yaml) or manually with [create_dashboard_views.sql](create_dashboard_views.sql).
 
-The views are built through [build_dashboard_views_bigquery.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/build_dashboard_views_bigquery.yaml).
+## Run The Streamlit Dashboard
 
-For a manual SQL alternative, see [create_dashboard_views.sql](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/dashboard/create_dashboard_views.sql).
+From the repository root:
+
+```powershell
+.\scripts\run_dashboard.ps1
+```
+
+The app reads from BigQuery when these environment variables are available:
+
+- `LTA_BQ_PROJECT_ID`
+- `LTA_BQ_DATASET`
+- `LTA_BQ_MART_TABLE`
+- `GOOGLE_APPLICATION_CREDENTIALS`
+
+If they are not configured, the app falls back to the public TfL CSV and rebuilds the same analytical mart locally.
 
 ## Looker Studio Setup
 
@@ -42,4 +55,4 @@ For a manual SQL alternative, see [create_dashboard_views.sql](C:/Users/bogdan/D
 3. Connect to the dataset `london_transport_dw`.
 4. Build one chart from `transport_journeys_over_time_v`.
 5. Build one chart from `transport_type_distribution_v`.
-6. Add titles and axis labels to make the dashboard self-explanatory.
+6. Add titles, axis labels, and filters so the visuals are self-explanatory.

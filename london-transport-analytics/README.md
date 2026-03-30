@@ -1,309 +1,221 @@
-# London Transport Analytics: End-to-End Data Pipeline for Public Transport Insights
+# London Transport Analytics
 
-## Project Overview
-
-**London Transport Analytics** is a cloud-native data engineering project designed to analyze trends in London's public transport usage through an **end-to-end batch data pipeline**. The project focuses on collecting official transport usage data, storing it in a structured analytics platform, and exposing insights through an interactive dashboard.
-
-The solution is being built to automate the movement of data from the source into a **data lake**, load it into a **data warehouse**, and prepare a clean analytical layer for business-style reporting.
+End-to-end batch analytics pipeline for London public transport usage, built as a DataTalksClub Data Engineering Zoomcamp course project.
 
 ## Problem Statement
 
-Public transport usage changes over time due to seasonality, long-term mobility trends, and external events. Manually collecting and comparing these changes across transport modes is inefficient and makes it harder to identify patterns in demand.
+Public transport demand changes over time because of seasonality, long-term mobility shifts, and external events. Pulling the dataset manually makes it hard to compare trends across transport modes and to keep reporting current.
 
-To address this problem, **London Transport Analytics** aims to automate the workflow by:
+This project automates the full path from the source dataset to an analytical dashboard:
 
-1. Extracting public transport journey data from an official open dataset.
-2. Storing raw data in cloud object storage as a **data lake**.
-3. Loading the data from the lake into a **data warehouse**.
-4. Transforming the data into a dashboard-ready analytical model.
-5. Visualizing trends and category distributions through an interactive dashboard.
+1. Download the official TfL journeys CSV.
+2. Store the raw file in Google Cloud Storage.
+3. Load the latest raw snapshot into BigQuery.
+4. Transform the wide source table into a partitioned analytical mart.
+5. Expose the results through dashboard-ready views and a local Streamlit dashboard.
 
-The project will focus on journey volumes across major London transport modes, such as:
+## Project Status
 
-- Bus
-- Underground
-- DLR
-- Tram
-- Overground
-- Cable Car
+The repository now covers all required project layers:
 
-## Current Status
+- `Cloud + IaC`: Terraform provisions the GCS bucket and BigQuery dataset.
+- `Batch orchestration`: Kestra runs the full `source -> lake -> raw -> mart -> dashboard` pipeline.
+- `Data warehouse`: raw and mart tables live in BigQuery, with partitioning and clustering on the mart.
+- `Transformations`: BigQuery SQL logic is implemented and documented.
+- `Dashboard`: two required tiles are available in both BigQuery views and a local Streamlit app.
+- `Reproducibility`: Windows-oriented bootstrap, prerequisite checks, and step-by-step run instructions are included.
 
-The project is being developed in stages, and the first five stages are now scaffolded.
+## Architecture
 
-Completed so far:
-
-- **Stage 1: Data ingestion with Kestra**
-- automated download of the official TfL CSV dataset
-- upload of raw CSV files into **Google Cloud Storage**
-- **Stage 2: Infrastructure with Terraform**
-- infrastructure definitions for the **GCS data lake** and **BigQuery dataset**
-- **Stage 3: Raw warehouse loading**
-- raw load flow from **GCS** into **BigQuery**
-- explicit raw schema for the source CSV columns
-- latest-file loading strategy from the raw landing zone
-- **Stage 4: Transformations**
-- dashboard-ready mart table design in **BigQuery**
-- parsed dates, typed metrics, and long-format transport modeling
-- partitioning by date and clustering by transport type
-- **Stage 5: Dashboard preparation**
-- dashboard-ready BigQuery views for the two required tiles
-- end-to-end `Kestra` orchestration from source to dashboard sources
-- dedicated module-level documentation for the implemented stages
-
-Planned next:
-
-- create the final **Looker Studio** report online and add screenshots or a shared link
-
-## Architecture and Highlights
-
-This project follows a batch architecture with the following target flow:
-
-1. **Source dataset** -> official transport dataset file
-2. **Data lake** -> raw files stored in cloud object storage
-3. **Data warehouse** -> structured tables stored for analytics
-4. **Transformations** -> cleaned and modeled tables for reporting
-5. **Dashboard** -> visual layer for exploring transport trends
-
-### Solution Highlights
-
-- **Cloud-Native & Infrastructure as Code (IaC)**: the infrastructure layer is defined with **Terraform** for reproducible cloud resource provisioning.
-- **Batch Data Pipeline with Workflow Orchestration**: the project includes an end-to-end `Kestra` pipeline orchestrating `source -> GCS -> BigQuery raw -> BigQuery mart -> dashboard views`.
-- **Layered Warehouse Design**: the project already includes both a raw warehouse layer and a transformed mart layer in **BigQuery**.
-- **Optimized Data Warehouse**: the transformed mart is designed to be partitioned by date and clustered by transport type.
-- **Transformations for Analytics**: the transformation layer parses dates, casts journey values, and reshapes the data into a dashboard-friendly model.
-- **Dashboard-Ready Outputs**: the project now includes two BigQuery views tailored for the required temporal and categorical dashboard tiles.
+```mermaid
+flowchart LR
+    A[TfL public CSV dataset] --> B[Kestra ingestion flow]
+    B --> C[GCS raw bucket]
+    C --> D[BigQuery raw table]
+    D --> E[BigQuery transport mart]
+    E --> F[BigQuery dashboard views]
+    E --> G[Streamlit dashboard]
+    F --> H[Looker Studio]
+```
 
 ## Dataset
 
-The project is planned around the **TfL Public Transport Journeys by Type of Transport** dataset.
+Source dataset: TfL Public Transport Journeys by Type of Transport
 
-Planned analytical questions include:
+- URL: `https://data.london.gov.uk/dataset/public-transport-journeys-type-transport`
+- File used by the pipeline:
+  `https://data.london.gov.uk/download/ep8ow/06a805f6-77c6-481a-8b08-ddef56afffdd/tfl-journeys-type.csv`
 
-- How has public transport usage changed over time?
-- Which transport types contribute the most journeys?
-- How do usage patterns differ by month or year?
+Main analytical questions:
 
-## Technology Stack
+- How have total public transport journeys changed over time?
+- Which transport types contribute the most journeys overall?
+- How does the mix of transport modes change across reporting periods?
 
-- **Cloud**: GCP
-- **Data lake**: Google Cloud Storage
-- **Data warehouse**: BigQuery
-- **Workflow orchestration**: Kestra
-- **Transformations**: BigQuery SQL orchestrated with Kestra
-- **Dashboard**: Looker Studio
-- **IaC**: Terraform
+## Tech Stack
 
-## Planned Dashboard
-
-The dashboard layer is prepared for at least two tiles:
-
-- **Temporal distribution**: journey volume over time
-- **Categorical distribution**: journey volume by transport type
-
-The final online report can now be assembled in Looker Studio using the prepared BigQuery views.
+- `GCP`: Google Cloud Storage, BigQuery
+- `IaC`: Terraform
+- `Orchestration`: Kestra
+- `Transformation layer`: BigQuery SQL orchestrated by Kestra
+- `Dashboard`: Streamlit and Looker Studio-ready BigQuery views
+- `Local automation`: PowerShell scripts
 
 ## Repository Structure
-
-This section reflects the repository structure after implementing the first five project stages:
 
 ```text
 london-transport-analytics/
 |-- README.md
+|-- .gitignore
+|-- scripts/
 |-- Terraform/
 |-- Kestra/
 |-- warehouse/
 |-- transformations/
 |-- dashboard/
-|-- images/
 ```
 
-## Infrastructure Setup
+## Quick Start
 
-The second implemented stage of the project defines the cloud infrastructure layer with **Terraform**.
+### 1. Install Prerequisites
 
-Provisioned resources:
+The repository includes Windows helper scripts:
 
-- **Google Cloud Storage bucket** for the raw data lake
-- **BigQuery dataset** for downstream analytical tables
-
-Terraform files and setup instructions are available in [Terraform/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/README.md).
-
-### Implemented Infrastructure Components
-
-- [Terraform/main.tf](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/main.tf) -> provider and resource definitions
-- [Terraform/variables.tf](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/variables.tf) -> configurable inputs
-- [Terraform/outputs.tf](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/outputs.tf) -> provisioned resource outputs
-- [Terraform/terraform.tfvars.example](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/terraform.tfvars.example) -> example runtime configuration
-- [Terraform/setup.ps1](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/setup.ps1) -> credentials helper
-- [Terraform/deploy.ps1](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Terraform/deploy.ps1) -> init/plan/apply helper
-
-## Data Ingestion
-
-The first implemented stage of the project uses **Kestra** to automate raw data ingestion into the data lake.
-
-The ingestion flow will:
-
-- download the official TfL CSV dataset
-- validate and store the file as a raw execution artifact
-- upload the raw CSV into a GCS bucket
-- organize files under a date-based raw landing path
-
-Implementation details and run instructions are available in [Kestra/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/README.md).
-
-### Implemented Ingestion Components
-
-- [Kestra/docker-compose.yml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/docker-compose.yml) -> local Kestra environment
-- [Kestra/set_kv.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/set_kv.yaml) -> project KV initialization
-- [Kestra/data_load_gcs.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/data_load_gcs.yaml) -> end-to-end raw ingestion flow
-- [Kestra/gcs_to_bigquery_raw.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/gcs_to_bigquery_raw.yaml) -> raw load flow from GCS to BigQuery
-- [Kestra/end_to_end_pipeline.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/end_to_end_pipeline.yaml) -> master batch pipeline
-
-### Target Raw Layout
-
-```text
-gs://<bucket>/raw/tfl_journeys_by_type/extract_date=YYYY-MM-DD/tfl_journeys_by_type_YYYY-MM-DD.csv
+```powershell
+.\scripts\bootstrap_windows.ps1 -InstallDocker
+.\scripts\check_prereqs.ps1
 ```
 
-## Transformations
+Optional bootstrap flags:
 
-The fourth implemented stage builds the first dashboard-ready analytical mart.
+- `-InstallDocker`: installs Docker Desktop as well
+- `-InstallDashboardDeps`: creates `.venv` and installs Streamlit dependencies
 
-The transformation layer is responsible for:
+Notes:
 
-- parsing reporting dates from the raw source
-- casting journey metrics into numeric fields
-- reshaping transport columns from wide to long format
-- producing a mart table optimized for dashboard queries
+- `Terraform` and `gcloud` were validated locally after installation.
+- After `winget` installs, open a new terminal if the commands are not yet in `PATH`.
+- Docker Desktop may still require first-run setup, WSL integration, and a restart.
 
-### Implemented Transformation Components
+### 2. Configure GCP Infrastructure
 
-- [Kestra/build_mart_bigquery.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/build_mart_bigquery.yaml) -> BigQuery mart build flow
-- [transformations/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/transformations/README.md) -> transformation layer documentation
-
-## Data Warehousing
-
-The third implemented stage introduces the initial warehouse loading step.
-
-The current warehouse layer is responsible for:
-
-- locating the latest raw CSV in **GCS**
-- loading that file into a **BigQuery raw table**
-- preserving source columns in a raw schema for downstream transformations
-- keeping the source structure close to the original file before modeling
-
-### Implemented Warehouse Components
-
-- [Kestra/gcs_to_bigquery_raw.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/gcs_to_bigquery_raw.yaml) -> latest-file raw load from GCS to BigQuery
-- [warehouse/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/warehouse/README.md) -> raw warehouse layer documentation
-
-Current warehouse documentation is available in [warehouse/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/warehouse/README.md).
-
-## Dashboard
-
-The fifth implemented stage prepares the dashboard data sources.
-
-The dashboard layer currently includes:
-
-- a time-series BigQuery view for the temporal chart
-- a category distribution BigQuery view for the transport comparison chart
-- a documented Looker Studio setup path
-
-### Implemented Dashboard Components
-
-- [Kestra/build_dashboard_views_bigquery.yaml](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/Kestra/build_dashboard_views_bigquery.yaml) -> dashboard source view creation
-- [dashboard/README.md](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/dashboard/README.md) -> dashboard setup guide
-- [dashboard/create_dashboard_views.sql](C:/Users/bogdan/Documents/Programming/MLDL/data-engineering-zoomcamp/london-transport-analytics/dashboard/create_dashboard_views.sql) -> manual SQL version of the dashboard views
-
-## Reproducibility
-
-At the current stage, the project already includes reproducible files for:
-
-- local workflow orchestration with **Kestra**
-- raw ingestion into **GCS**
-- infrastructure provisioning with **Terraform**
-- raw loading from **GCS** into **BigQuery**
-- raw warehouse schema definition inside the loading flow
-- transformed mart creation inside **BigQuery**
-- dashboard source view creation inside **BigQuery**
-- end-to-end orchestration through a master `Kestra` flow
-
-## End-to-End Run
-
-Use the following sequence to reproduce the full pipeline.
-
-### 1. Provision Infrastructure
+Create a working Terraform variable file:
 
 ```powershell
 cd Terraform
 Copy-Item terraform.tfvars.example terraform.tfvars
+```
+
+Set your service account path:
+
+```powershell
 .\setup.ps1 -CredentialsPath "C:\path\to\service-account.json"
+```
+
+Deploy:
+
+```powershell
 .\deploy.ps1
 ```
 
-### 2. Start Kestra
+The Terraform configuration was locally validated with:
+
+```powershell
+terraform init -backend=false
+terraform validate
+```
+
+### 3. Start Kestra
 
 ```powershell
 cd ..\Kestra
-docker-compose up
+docker compose up
 ```
 
-### 3. Configure Kestra
+Open `http://localhost:8080`.
 
-Import the following files into the `london_transport` namespace:
+Default local credentials:
 
-- `set_kv.yaml`
-- `data_load_gcs.yaml`
-- `gcs_to_bigquery_raw.yaml`
-- `build_mart_bigquery.yaml`
-- `build_dashboard_views_bigquery.yaml`
-- `end_to_end_pipeline.yaml`
+- Username: `admin@localhost.dev`
+- Password: `kestra`
 
-Then:
+The `docker-compose.yml` file now auto-loads the project flow YAML files at startup, so you no longer need to import them one by one for local development.
 
-- create the secret `GCP_SERVICE_ACCOUNT`
-- run `set_kv.yaml`
-- update KV values if you changed dataset, bucket, or table names
+### 4. Configure Kestra
 
-### 4. Run the Pipeline
+Before running the pipeline:
 
-Run:
+1. Create the secret `GCP_SERVICE_ACCOUNT` with the full JSON content of your service account.
+2. Run the `set_kv` flow to initialize the default KV pairs.
+3. Adjust KV values if you changed bucket, project, dataset, or table names.
 
-- `end_to_end_pipeline.yaml`
+### 5. Run the End-to-End Pipeline
 
-This will:
+Run the `end_to_end_pipeline` flow in the `london_transport` namespace.
 
-- download the source CSV
-- upload raw data to GCS
-- load raw data into BigQuery
-- build the mart table
-- create the dashboard views
+The flow executes:
 
-### 5. Build the Online Dashboard
+1. `data_load_gcs`
+2. `gcs_to_bigquery_raw`
+3. `build_mart_bigquery`
+4. `build_dashboard_views_bigquery`
 
-Open Looker Studio and connect to:
+## Dashboard Options
+
+### Option A: Local Streamlit Dashboard
+
+From the repository root, run:
+
+```powershell
+.\scripts\run_dashboard.ps1
+```
+
+The Streamlit app supports two modes:
+
+- `BigQuery mart`: reads `transport_journeys_mart` from your GCP project
+- `Public CSV fallback`: downloads the official TfL CSV and applies the same mart logic locally
+
+Environment variables used by the BigQuery mode:
+
+- `LTA_BQ_PROJECT_ID`
+- `LTA_BQ_DATASET` (default: `london_transport_dw`)
+- `LTA_BQ_MART_TABLE` (default: `transport_journeys_mart`)
+- `GOOGLE_APPLICATION_CREDENTIALS`
+
+### Option B: Looker Studio
+
+If you prefer a hosted BI layer, connect Looker Studio to these BigQuery views:
 
 - `transport_journeys_over_time_v`
 - `transport_type_distribution_v`
 
-The remaining final online artifact is the actual Looker Studio report link or screenshot.
+The SQL definition for the two views is in [dashboard/create_dashboard_views.sql](dashboard/create_dashboard_views.sql).
 
-## Reproducibility Notes
+## Module Guide
 
-The current reproducibility setup covers all code and orchestration layers in the repository.
+- [Terraform/README.md](Terraform/README.md): infrastructure provisioning
+- [Kestra/README.md](Kestra/README.md): orchestration, flow descriptions, and local startup
+- [warehouse/README.md](warehouse/README.md): raw table design
+- [transformations/README.md](transformations/README.md): mart logic and manual SQL
+- [dashboard/README.md](dashboard/README.md): Streamlit dashboard and BigQuery view usage
 
-The final online artifact still needs to be created manually:
+## Validation Notes
 
-- a shared Looker Studio dashboard link
-- or dashboard screenshots for the final submission
+Completed locally on March 29, 2026:
 
-## Future Improvement Opportunities
+- `Terraform` installed via `winget`
+- `Google Cloud SDK` installed via `winget`
+- `terraform init -backend=false`
+- `terraform validate`
 
-- Add automated scheduling for periodic refreshes
-- Add data quality checks
-- Introduce richer analytical dimensions
-- Replace the transformation layer with dbt if deeper analytics engineering is required
+Not completed locally in this environment:
 
-## Acknowledgments
+- `Docker Desktop` installation and Kestra runtime verification
+- actual GCP execution of the pipeline
+- publication of an online Looker Studio report
 
-This project is being prepared as a course project for data engineering practice, using open public transport data and a cloud-based analytics stack.
+## Project Improvement Opportunities
+
+- Migrate transformations to `dbt` if you want the transformation layer to score as a framework-based transformation stage in the Zoomcamp rubric.
+- Add automated tests around the mart logic.
+- Add CI to validate Terraform formatting, Python syntax, and dashboard startup.
